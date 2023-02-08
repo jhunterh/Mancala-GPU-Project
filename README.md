@@ -1,2 +1,2 @@
 # Mancala-GPU-Project
-This is a test commit
+This is the repository for the Mancala Monte Carlo Tree Search Implementation for General Purpose GPU Programming.
