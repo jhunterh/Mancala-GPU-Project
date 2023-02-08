@@ -21,7 +21,7 @@ private:
     std::shared_ptr<Player> m_player1;
     std::shared_ptr<Player> m_player2;
 
-    std::shared_ptr<MancalaBoard> m_gameBoard;
+    MancalaBoard m_gameBoard;
 
     int m_playerTurn = 1; // Player 1 goes first
 

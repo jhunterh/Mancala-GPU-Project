@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "GameManager.h"
 
 namespace Mancala {
@@ -11,11 +13,18 @@ void GameManager::initGame(std::shared_ptr<Player> player1, std::shared_ptr<Play
     m_player1->setPlayerNumber(1);
     m_player2 = player2;
     m_player2->setPlayerNumber(2);
-    
-    m_gameBoard = std::make_shared<MancalaBoard>(new MancalaBoard());
+
+    m_gameBoard.player1Goal = 0;
+    m_gameBoard.player2Goal = 0;
+
+    for(int i = 0; i < m_gameBoard.pits.size(); ++i) {
+        m_gameBoard.pits[i] = 4;
+    } // end for
 } // end method initGame
 
 void GameManager::startGame() {
+
+    std::cout << "GAME STARTING" << std::endl;
 
     int winner = -1; // no winner yet
 
@@ -24,9 +33,9 @@ void GameManager::startGame() {
         // Get move from player
         int move = -1;
         if(m_playerTurn == 1) {
-            move = m_player1->makeMove(*m_gameBoard);
+            move = m_player1->makeMove(m_gameBoard);
         } else {
-            move = m_player2->makeMove(*m_gameBoard);
+            move = m_player2->makeMove(m_gameBoard);
         } // end if
 
         // Make move on board
@@ -34,7 +43,11 @@ void GameManager::startGame() {
 
         // Are we in an end state?
         if(isEndState()) {
-            winner = m_playerTurn;
+            winner = (m_gameBoard.player1Goal > m_gameBoard.player2Goal) ? 1 : 2;
+
+            if (m_gameBoard.player1Goal == m_gameBoard.player2Goal) {
+                std::cout << "TIE GAME?" << std::endl;
+            } // end if
         } // end if
 
         if(!repeatTurn) {
@@ -46,27 +59,30 @@ void GameManager::startGame() {
         } // end if
 
     } // end while
+
+    std::cout << "Winner Is: " << winner << std::endl;
 } // end method startGame
 
 bool GameManager::makeMoveOnBoard(int move) {
     int idx = move;
-    int stones = m_gameBoard->pits[idx];
-    m_gameBoard->pits[idx] = 0;
+    if(idx >= 6) ++idx;
+    int stones = m_gameBoard.pits[idx];
+    m_gameBoard.pits[idx] = 0;
 
     bool repeatMove = false;
 
     while (stones > 0) {
         if(idx < 6) {
-            ++m_gameBoard->pits[idx];
+            ++m_gameBoard.pits[idx];
             repeatMove = false;
         } else if(idx == 6) {
-            ++m_gameBoard->player1Goal;
+            ++m_gameBoard.player1Goal;
             repeatMove = (m_playerTurn == 2);
         } else if(idx < 13) {
-            ++m_gameBoard->pits[idx-1];
+            ++m_gameBoard.pits[idx-1];
             repeatMove = false;
         } else {
-            ++m_gameBoard->player2Goal;
+            ++m_gameBoard.player2Goal;
             idx = 0;
             repeatMove = (m_playerTurn == 1);
         } // end if
@@ -89,14 +105,14 @@ bool GameManager::makeMoveOnBoard(int move) {
     } // end if
 
     if(pitIdx != -1) {
-        if((m_playerTurn == 1) && (m_gameBoard->pits[pitIdx] == 1) && (pitIdx < 6)) {
-            int mirrorIdx = pitIdx + 6;
-            m_gameBoard->player1Goal += m_gameBoard->pits[mirrorIdx];
-            m_gameBoard->pits[mirrorIdx] = 0;
-        } else if((m_playerTurn == 2) && (m_gameBoard->pits[pitIdx] == 1) && (pitIdx > 5)) {
-            int mirrorIdx = pitIdx - 6;
-            m_gameBoard->player2Goal += m_gameBoard->pits[mirrorIdx];
-            m_gameBoard->pits[mirrorIdx] = 0;
+        if((m_playerTurn == 1) && (m_gameBoard.pits[pitIdx] == 1) && (pitIdx < 6)) {
+            int mirrorIdx = 11 - pitIdx;
+            m_gameBoard.player1Goal += m_gameBoard.pits[mirrorIdx];
+            m_gameBoard.pits[mirrorIdx] = 0;
+        } else if((m_playerTurn == 2) && (m_gameBoard.pits[pitIdx] == 1) && (pitIdx >= 6)) {
+            int mirrorIdx = 11 - pitIdx;
+            m_gameBoard.player2Goal += m_gameBoard.pits[mirrorIdx];
+            m_gameBoard.pits[mirrorIdx] = 0;
         } // end if
     } // end if
 
@@ -107,7 +123,7 @@ bool GameManager::isEndState() {
 
     bool player1OutOfMoves = true;
     for(int i = 0; i < 6; ++i) {
-        if(m_gameBoard->pits[i] > 0) {
+        if(m_gameBoard.pits[i] > 0) {
             player1OutOfMoves = false;
             break;
         }
@@ -115,7 +131,7 @@ bool GameManager::isEndState() {
 
     bool player2OutOfMoves = true;
     for(int i = 6; i < 12; ++i) {
-        if(m_gameBoard->pits[i] > 0) {
+        if(m_gameBoard.pits[i] > 0) {
             player2OutOfMoves = false;
             break;
         }

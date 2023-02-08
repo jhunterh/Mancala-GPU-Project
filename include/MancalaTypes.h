@@ -13,16 +13,16 @@ struct MancalaBoard {
     int player2Goal = 0;
 }; // end struct MancalaBoard
 
-std::vector<int> getValidMoves(MancalaBoard *board, int playerTurn) {
+static std::vector<int> getValidMoves(MancalaBoard board, int playerTurn) {
     std::vector<int> validMoves;
     
     if (playerTurn == 1) {
         for(int i = 0; i < 6; ++i) {
-            if(board->pits[i] > 0) validMoves.push_back(i);
+            if(board.pits[i] > 0) validMoves.push_back(i);
         } // end for
     } else {
         for(int i = 6; i < 12; ++i) {
-            if(board->pits[i] > 0) validMoves.push_back(i);
+            if(board.pits[i] > 0) validMoves.push_back(i);
         } // end for
     } // end if
 
@@ -35,7 +35,7 @@ enum PlayerType {
     MONTE_GPU
 }; // end enum PlayerType
 
-std::string getPlayerString(PlayerType type) {
+static std::string getPlayerString(PlayerType type) {
     std::map<PlayerType,std::string> m;
     m[PlayerType::RANDOM] = "RANDOM";
     m[PlayerType::MONTE_CPU] = "MONTE_CPU";
