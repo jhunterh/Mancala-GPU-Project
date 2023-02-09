@@ -8,7 +8,7 @@ namespace Mancala {
 
 class RandomPlayer : public Player {
 public:
-    RandomPlayer() = default;
+    RandomPlayer();
     ~RandomPlayer() = default;
 
     int makeMove(MancalaBoard board) override;

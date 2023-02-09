@@ -7,19 +7,17 @@
 
 namespace Mancala {
 
-    int RandomPlayer::makeMove(MancalaBoard board) {
+    RandomPlayer::RandomPlayer() {
+        srand(time(NULL));
+    } // end default constructor
 
-        std::cout << "my turn: " << getPlayerNumber() << std::endl;
+    int RandomPlayer::makeMove(MancalaBoard board) {
 
         int playerNum = getPlayerNumber();
 
         std::vector<int> validMoves = getValidMoves(board, playerNum);
 
-        srand(time(NULL));
-
         int randomValue = (rand() % validMoves.size());
-
-        std::cout << "I choose: " << randomValue << " " << validMoves[randomValue] << std::endl;
 
         return validMoves[randomValue];
     } // end method makeMove

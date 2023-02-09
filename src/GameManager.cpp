@@ -64,59 +64,67 @@ void GameManager::startGame() {
 } // end method startGame
 
 bool GameManager::makeMoveOnBoard(int move) {
-    int idx = move;
-    if(idx >= 6) ++idx;
-    int stones = m_gameBoard.pits[idx];
-    m_gameBoard.pits[idx] = 0;
 
-    bool repeatMove = false;
-
-    while (stones > 0) {
-        if(idx < 6) {
-            ++m_gameBoard.pits[idx];
-            repeatMove = false;
-        } else if(idx == 6) {
-            ++m_gameBoard.player1Goal;
-            repeatMove = (m_playerTurn == 2);
-        } else if(idx < 13) {
-            ++m_gameBoard.pits[idx-1];
-            repeatMove = false;
+    // initialize game vector
+    std::vector<int> gameVec;
+    for(int i = 0; i < 14; ++i) {
+        if(i < 6) {
+            gameVec.push_back(m_gameBoard.pits[i]);
+        } else if(i == 6) {
+            gameVec.push_back(m_gameBoard.player1Goal);
+        } else if(i < 13) {
+            gameVec.push_back(m_gameBoard.pits[i-1]);
         } else {
-            ++m_gameBoard.player2Goal;
-            idx = 0;
-            repeatMove = (m_playerTurn == 1);
+            gameVec.push_back(m_gameBoard.player2Goal);
         } // end if
+    } // end for
+
+    bool repeatTurn = false;
+
+    int idx = (move < 6) ? move : move+1;
+
+    int stones = gameVec[idx];
+    gameVec[idx] = 0;
+
+    // distribute stones
+    while(stones > 0) {
+        idx = (idx == 13) ? 0 : (idx + 1);
+        ++gameVec[idx];
         --stones;
-
-        if(stones == 0) {
-            // do nothing
-        } else if(idx > 12) {
-            idx = 0;
-        } else {
-            ++idx;
-        } // end if
     } // end while
 
-    int pitIdx = -1;
-    if(idx < 6) {
-        pitIdx = idx;
-    } else if ((idx > 6) && (idx < 13)) {
-        pitIdx = idx-1;
+    // check for special cases
+    if((idx == 6) && (m_playerTurn == 1)) {
+        repeatTurn = true;
+    } else if((idx == 13) && (m_playerTurn == 2)) {
+        repeatTurn = true;
     } // end if
 
-    if(pitIdx != -1) {
-        if((m_playerTurn == 1) && (m_gameBoard.pits[pitIdx] == 1) && (pitIdx < 6)) {
-            int mirrorIdx = 11 - pitIdx;
-            m_gameBoard.player1Goal += m_gameBoard.pits[mirrorIdx];
-            m_gameBoard.pits[mirrorIdx] = 0;
-        } else if((m_playerTurn == 2) && (m_gameBoard.pits[pitIdx] == 1) && (pitIdx >= 6)) {
-            int mirrorIdx = 11 - pitIdx;
-            m_gameBoard.player2Goal += m_gameBoard.pits[mirrorIdx];
-            m_gameBoard.pits[mirrorIdx] = 0;
+    if((idx < 6) && (m_playerTurn == 1) && (gameVec[idx] == 1)) {
+        int mirrorIdx = 12-idx;
+        gameVec[6] += gameVec[mirrorIdx];
+        gameVec[mirrorIdx] = 0;
+    } else if((idx > 6) && (idx < 13) && (m_playerTurn == 2) && (gameVec[idx] == 1)) {
+        int mirrorIdx = 12-idx;
+        gameVec[13] += gameVec[mirrorIdx];
+        gameVec[mirrorIdx] = 0;
+    } // end if
+
+    // convert game vector back to board struct
+    for(int i = 0; i < 14; ++i) {
+        if(i < 6) {
+            m_gameBoard.pits[i] = gameVec[i];
+        } else if(i == 6) {
+            m_gameBoard.player1Goal = gameVec[i];
+        } else if(i < 13) {
+            m_gameBoard.pits[i-1] = gameVec[i];
+        } else {
+            m_gameBoard.player2Goal = gameVec[i];
         } // end if
-    } // end if
+    } // end for
 
-    return repeatMove;
+    return repeatTurn;
+
 } // end method makeMoveOnBoard
 
 bool GameManager::isEndState() {
