@@ -1,7 +1,9 @@
 #ifndef _PLAYER_H
 #define _PLAYER_H
 
-#include "MancalaTypes.h"
+#include <vector>
+
+#include "MancalaStatic.h"
 
 namespace Mancala {
 
@@ -18,7 +20,7 @@ public:
         return m_playerNumber;
     } // end method getPlayerNumber
 
-    virtual int makeMove(MancalaBoard board){return -1;}  // function to override
+    virtual int makeMove(std::vector<int> board){return -1;}  // function to override
 
 private:
     int m_playerNumber = -1;

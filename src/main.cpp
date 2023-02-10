@@ -1,7 +1,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "MancalaTypes.h"
+#include "MancalaStatic.h"
 #include "GameManager.h"
 #include "RandomPlayer.h"
 

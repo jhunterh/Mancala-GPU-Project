@@ -14,12 +14,8 @@ void GameManager::initGame(std::shared_ptr<Player> player1, std::shared_ptr<Play
     m_player2 = player2;
     m_player2->setPlayerNumber(2);
 
-    m_gameBoard.player1Goal = 0;
-    m_gameBoard.player2Goal = 0;
-
-    for(int i = 0; i < m_gameBoard.pits.size(); ++i) {
-        m_gameBoard.pits[i] = 4;
-    } // end for
+    m_gameBoard[P1GOAL] = 0;
+    m_gameBoard[P2GOAL] = 0;
 } // end method initGame
 
 void GameManager::startGame() {
@@ -42,12 +38,9 @@ void GameManager::startGame() {
         bool repeatTurn = makeMoveOnBoard(move);
 
         // Are we in an end state?
-        if(isEndState()) {
-            winner = (m_gameBoard.player1Goal > m_gameBoard.player2Goal) ? 1 : 2;
-
-            if (m_gameBoard.player1Goal == m_gameBoard.player2Goal) {
-                std::cout << "TIE GAME?" << std::endl;
-            } // end if
+        winner = determineWinner();
+        if(winner != -1) {
+            break;
         } // end if
 
         if(!repeatTurn) {
@@ -60,92 +53,104 @@ void GameManager::startGame() {
 
     } // end while
 
-    std::cout << "Winner Is: " << winner << std::endl;
+    std::cout << "Winner Is: Player " << winner << std::endl;
+    printBoard(m_gameBoard);
 } // end method startGame
 
 bool GameManager::makeMoveOnBoard(int move) {
 
-    // initialize game vector
-    std::vector<int> gameVec;
-    for(int i = 0; i < 14; ++i) {
-        if(i < 6) {
-            gameVec.push_back(m_gameBoard.pits[i]);
-        } else if(i == 6) {
-            gameVec.push_back(m_gameBoard.player1Goal);
-        } else if(i < 13) {
-            gameVec.push_back(m_gameBoard.pits[i-1]);
-        } else {
-            gameVec.push_back(m_gameBoard.player2Goal);
-        } // end if
-    } // end for
+    printBoard(m_gameBoard);
+
+    std::cout << "Player " << m_playerTurn << " Makes Move: " << move << std::endl << std::endl;
 
     bool repeatTurn = false;
 
-    int idx = (move < 6) ? move : move+1;
+    int idx = move;
 
-    int stones = gameVec[idx];
-    gameVec[idx] = 0;
+    int stones = m_gameBoard[idx];
+    m_gameBoard[idx] = 0;
 
     // distribute stones
     while(stones > 0) {
-        idx = (idx == 13) ? 0 : (idx + 1);
-        ++gameVec[idx];
-        --stones;
+        idx = (idx == P2GOAL) ? 0 : (idx + 1);
+
+        if((m_playerTurn == 1) && (idx == P2GOAL)) {
+            // skip
+        } else if ((m_playerTurn == 2) && (idx == P1GOAL)) {
+            // skip
+        } else {
+            ++m_gameBoard[idx];
+            --stones;
+        } // end if
     } // end while
 
     // check for special cases
-    if((idx == 6) && (m_playerTurn == 1)) {
+    if((idx == P1GOAL) && (m_playerTurn == 1)) {
         repeatTurn = true;
-    } else if((idx == 13) && (m_playerTurn == 2)) {
+    } else if((idx == P2GOAL) && (m_playerTurn == 2)) {
         repeatTurn = true;
     } // end if
 
-    if((idx < 6) && (m_playerTurn == 1) && (gameVec[idx] == 1)) {
+    if((idx < P1GOAL) && (m_playerTurn == 1) && (m_gameBoard[idx] == 1)) {
         int mirrorIdx = 12-idx;
-        gameVec[6] += gameVec[mirrorIdx];
-        gameVec[mirrorIdx] = 0;
-    } else if((idx > 6) && (idx < 13) && (m_playerTurn == 2) && (gameVec[idx] == 1)) {
-        int mirrorIdx = 12-idx;
-        gameVec[13] += gameVec[mirrorIdx];
-        gameVec[mirrorIdx] = 0;
-    } // end if
-
-    // convert game vector back to board struct
-    for(int i = 0; i < 14; ++i) {
-        if(i < 6) {
-            m_gameBoard.pits[i] = gameVec[i];
-        } else if(i == 6) {
-            m_gameBoard.player1Goal = gameVec[i];
-        } else if(i < 13) {
-            m_gameBoard.pits[i-1] = gameVec[i];
-        } else {
-            m_gameBoard.player2Goal = gameVec[i];
+        if(m_gameBoard[mirrorIdx] > 0) {
+            m_gameBoard[P1GOAL] += m_gameBoard[mirrorIdx];
+            m_gameBoard[mirrorIdx] = 0;
+            ++m_gameBoard[P1GOAL];
+            m_gameBoard[idx] = 0;
         } // end if
-    } // end for
+    } else if((idx > P1GOAL) && (idx < P2GOAL) && (m_playerTurn == 2) && (m_gameBoard[idx] == 1)) {
+        int mirrorIdx = 12-idx;
+        if(m_gameBoard[mirrorIdx] > 0) {
+            m_gameBoard[P2GOAL] += m_gameBoard[mirrorIdx];
+            m_gameBoard[mirrorIdx] = 0;
+            ++m_gameBoard[P2GOAL];
+            m_gameBoard[idx] = 0;
+        } // end if
+    } // end if
 
     return repeatTurn;
 
 } // end method makeMoveOnBoard
 
-bool GameManager::isEndState() {
+int GameManager::determineWinner() {
+    int winner = -1;
 
     bool player1OutOfMoves = true;
-    for(int i = 0; i < 6; ++i) {
-        if(m_gameBoard.pits[i] > 0) {
+    for(int i = 0; i < P1GOAL; ++i) {
+        if(m_gameBoard[i] > 0) {
             player1OutOfMoves = false;
             break;
-        }
+        } // end if
     } // end for
 
     bool player2OutOfMoves = true;
-    for(int i = 6; i < 12; ++i) {
-        if(m_gameBoard.pits[i] > 0) {
+    for(int i = P1GOAL+1; i < P2GOAL; ++i) {
+        if(m_gameBoard[i] > 0) {
             player2OutOfMoves = false;
             break;
-        }
+        } // end if
     } // end for
 
-    return (player1OutOfMoves || player2OutOfMoves);
-} // end method isEndState
+    if(player1OutOfMoves) {
+        for(int i = P1GOAL+1; i < P2GOAL; ++i) {
+            m_gameBoard[P2GOAL] += m_gameBoard[i];
+            m_gameBoard[i] = 0;
+        } // end for
+        winner = (m_gameBoard[P1GOAL] > m_gameBoard[P2GOAL]) ? 1 : 2;
+    } else if(player2OutOfMoves) {
+        for(int i = 0; i < P1GOAL; ++i) {
+            m_gameBoard[P1GOAL] += m_gameBoard[i];
+            m_gameBoard[i] = 0;
+        } // end for
+        winner = (m_gameBoard[P1GOAL] > m_gameBoard[P2GOAL]) ? 1 : 2;
+    } // end if
+
+    if ((m_gameBoard[P1GOAL] == m_gameBoard[P2GOAL]) && (player1OutOfMoves || player2OutOfMoves)) {
+        std::cout << "TIE GAME?" << std::endl;
+    } // end if
+
+    return winner;
+} // end method determineWinner
 
 } // end namespace Mancala

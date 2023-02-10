@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "RandomPlayer.h"
-#include "MancalaTypes.h"
 
 namespace Mancala {
 
@@ -11,7 +10,7 @@ namespace Mancala {
         srand(time(NULL));
     } // end default constructor
 
-    int RandomPlayer::makeMove(MancalaBoard board) {
+    int RandomPlayer::makeMove(std::vector<int> board) {
 
         int playerNum = getPlayerNumber();
 

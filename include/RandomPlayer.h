@@ -1,7 +1,9 @@
 #ifndef _RANDOMPLAYER_H
 #define _RANDOMPLAYER_H
 
-#include "MancalaTypes.h"
+#include <vector>
+
+#include "MancalaStatic.h"
 #include "Player.h"
 
 namespace Mancala {
@@ -11,7 +13,7 @@ public:
     RandomPlayer();
     ~RandomPlayer() = default;
 
-    int makeMove(MancalaBoard board) override;
+    int makeMove(std::vector<int> board) override;
 
 }; // end class Player
 
