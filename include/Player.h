@@ -9,9 +9,7 @@ namespace Mancala {
 
 class Player {
 public:
-    Player() = default;
-    ~Player() = default;
-
+    
     void setPlayerNumber(int newPlayerNumber) {
         m_playerNumber = newPlayerNumber;
     } // end method setPlayerNumber
@@ -21,6 +19,9 @@ public:
     } // end method getPlayerNumber
 
     virtual int makeMove(std::vector<int> board){return -1;}  // function to override
+
+protected:
+    Player() = default;
 
 private:
     int m_playerNumber = -1;
