@@ -2,6 +2,7 @@
 #define _MANCALATYPES_H
 
 #include <string>
+#include <iostream>
 #include <map>
 #include <vector>
 #include <iomanip>

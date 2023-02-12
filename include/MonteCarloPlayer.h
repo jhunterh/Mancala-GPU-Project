@@ -10,25 +10,35 @@
 
 namespace Mancala {
 
+struct TreeNode {
+    bool isLeaf = true;
+    float value = 0;
+    int timesVisited = 0;
+    std::shared_ptr<TreeNode> parent;
+    std::vector<std::shared_ptr<TreeNode>> children;
+    int playerTurn;
+    std::vector<int> gameState;
+} // end struct TreeNode
+
 class MonteCarloPlayer : public Player {
 public:
     MonteCarloPlayer() = default;
     ~MonteCarloPlayer() = default;
 
     void setSimulationPolicy(std::shared_ptr<SimulationPolicy> policy);
-
     int makeMove(std::vector<int> board) override;
 
 private:
 
-    enum SearchState {
-        SELECTION,
-        EXPANSION,
-        SIMULATION,
-        BACKPROPAGATION
-    };
-
+    int m_totalSimulationsRan = 0;
     std::shared_ptr<SimulationPolicy> m_simPolicy;
+    std::shared_ptr<TreeNode> m_rootNode;
+    std::shared_ptr<TreeNode> m_selectedNode;
+
+    void selection();
+    void expansion();
+    void simulation();
+    void backpropagation();
 
 }; // end class Player
 
