@@ -10,7 +10,7 @@ int main(int argc, char **argv)
     if(argc != 3)
     {
         std::cout << "[ERROR] Not enough arguments!" << std::endl
-                  << "USAGE: ./<game> <Player1Type> <Player2Type>" << std::endl
+                  << "USAGE: ./simulation <Player1Type> <Player2Type>" << std::endl
                   << Player::PlayerManager::getPlayerTypeList() << std::endl;
         return 1;
     }
