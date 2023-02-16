@@ -7,8 +7,9 @@ $ make game=<example>
 where <example> is the name of your custom game.
 
 To run the included simulation, run the follwing command:
+```
 $ ./build/bin/simulation <Player1Type> <Player2Type>
-
-where <Player1Type> and <Player2Type> are the desired AI types. You can find out the current implemented types by running the simulation executable without arguments.
+```
+where Player1Type and Player2Type are the desired AI types. You can find out the current implemented types by running the simulation executable without arguments.
 
 Note: the simulation only currently supports a two person game.
