@@ -3,35 +3,48 @@
 
 #include "PlayerManager.h"
 
+// Simulation for any two person board game
 int main(int argc, char **argv)
 {
+    // Check CMD arguments
     if(argc != 3)
     {
         std::cout << "[ERROR] Not enough arguments!" << std::endl
-                  << "USAGE: ./mancala <PlayerType> <PlayerType>" << std::endl
-                  << Player::PlayerManager::getPlayerList() << std::endl;
+                  << "USAGE: ./<game> <Player1Type> <Player2Type>" << std::endl
+                  << Player::PlayerManager::getPlayerTypeList() << std::endl;
         return 1;
     }
 
+    // Set players
     Player::PlayerManager playerManager;
-    if(!playerManager.selectPlayers(std::stoul(argv[1]), std::stoul(argv[2])))
+
+    // Set player 1
+    if(!playerManager.selectPlayers(0, std::stoul(argv[1])))
     {
         std::cout << "[ERROR] PlayerType not valid!" << std::endl
-                  << Player::PlayerManager::getPlayerList() << std::endl;
+                  << Player::PlayerManager::getPlayerTypeList() << std::endl;
         return 1;
     }
 
-    // Play game
+    // Set player 2
+    if(!playerManager.selectPlayers(1, std::stoul(argv[2])))
+    {
+        std::cout << "[ERROR] PlayerType not valid!" << std::endl
+                  << Player::PlayerManager::getPlayerTypeList() << std::endl;
+        return 1;
+    }
+
+    // Init game board
     Game::GameBoard gameBoard;
     gameBoard.initBoard();
 
+    // Play game
     std::cout << "GAME STARTING" << std::endl << std::endl
               << "Beginning game state:" << std::endl 
               << gameBoard.getBoardStateString() << std::endl << std::endl;
 
-    bool gameActive = true; // no winner yet
+    bool gameActive = true;
     Player::playernum_t activePlayer = Player::PLAYER_NUMBER_1;
-
     while(gameActive)
     {
         // Get move from player
@@ -64,7 +77,7 @@ int main(int argc, char **argv)
                 std::cout << "Player " << std::to_string(activePlayer + 1)
                           << " Makes Move: " << std::to_string(move) << std::endl 
                           << "New board state:" << std::endl 
-                          <<gameBoard.getBoardStateString() << std::endl << std::endl;
+                          << gameBoard.getBoardStateString() << std::endl << std::endl;
                 if(moveResult == Game::MOVE_SUCCESS)
                 {
                     // Switch players
@@ -74,7 +87,7 @@ int main(int argc, char **argv)
             }
         }
         
-    } // end while
+    }
 
     // Output game win
     Game::boardresult_t gameResult = gameBoard.getBoardResult();
