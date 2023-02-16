@@ -16,7 +16,7 @@ std::string PlayerManager::getPlayerTypeList()
     std::string playerListString = "Player Types:\n";
     for(uint8_t i = 0; i < playerTypeList.size(); i++)
     {
-        playerListString += " - " + std::to_string(i) + ":" + 
+        playerListString += " - " + std::to_string(i) + ": " + 
                             playerTypeList.at(i)->getDescription() + "\n";
     }
     return playerListString;
