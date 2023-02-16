@@ -7,6 +7,8 @@
 
 namespace Player {
 
+// Definition of Random Player
+// This player always selects a move at random
 class RandomPlayer : public Player {
 public:
     RandomPlayer();

@@ -7,20 +7,34 @@
 
 namespace Player
 {
-    
+
+// Player Manager class
+// Used to store, manage, and interface with players
 class PlayerManager
 {
 public:
     PlayerManager() = default;
     ~PlayerManager() = default;
 
-    static std::string getPlayerList();
+    // Returns list of player types
+    static std::string getPlayerTypeList();
+
+    // Select player type for player
+    // Returns false if not a valid player number or type
     bool selectPlayers(playernum_t playerNum, playertype_t playerType);
+
+    // Get player-chosen move
     Game::move_t getMove(playernum_t playerNum, Game::GameBoard& board);
 
 private:
+
+    // Static declaration of types of players
     static const std::vector<std::shared_ptr<Player>> playerTypeList;
-    std::vector<std::shared_ptr<Player>> playerList = { playerTypeList[0], playerTypeList[0] };
+
+    // List of current players
+    std::vector<std::shared_ptr<Player>> playerList = std::vector<std::shared_ptr<Player>>(
+        PLAYER_NUMBER_MAX + 1, playerTypeList[0]
+    );
 };
 
 }

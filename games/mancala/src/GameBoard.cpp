@@ -54,8 +54,13 @@
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|_| \_|\____/  |_____|_|      |_____/   |_/_/    \_\_|  |______|_|  |_|______|_| \_|  |_| |_____/(_)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(Or at least very minimal)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
+// GameBoard implementation for Mancala
+// This file was implemented with CUDA in mind, so if statements and 
+// trinary operators have been kept to a minimum to avoid warp divergence.
+
 namespace Game {
 
+// Init the board state
 void GameBoard::initBoard()
 {
     // Init player 1 side
@@ -73,11 +78,7 @@ void GameBoard::initBoard()
     }
 }
 
-boardstate_t* GameBoard::getBoardState()
-{
-    return &boardState;
-}
-
+// Execute a move on the board for a given player
 moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
 {
     moveresult_t result = 0;
@@ -125,6 +126,8 @@ moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
     
     return result;
 }
+
+// Return the possible move on the board for a given player
 movecount_t GameBoard::getMoves(movelist_t& movesOut, Player::playernum_t playerNum)
 {
     // Loop through each move
@@ -141,6 +144,7 @@ movecount_t GameBoard::getMoves(movelist_t& movesOut, Player::playernum_t player
     return moveCount;
 }
 
+// Return the board result
 boardresult_t GameBoard::getBoardResult()
 {
     uint8_t p1Score = 0;
@@ -158,21 +162,27 @@ boardresult_t GameBoard::getBoardResult()
     return (p1Score == 0) + (p2Score == 0)*2;
 }
 
+// Return the state of the board in string format
 std::string GameBoard::getBoardStateString()
 {
+    // Create stringstream
     std::stringstream boardStateBuf;
 
+    // Print player 2 side
     for(int i = P2_GOAL-1; i > P1_GOAL; --i) {
         boardStateBuf << " " << std::setw(2) << std::to_string(boardState[i]);
-    } // end for
+    }
 
+    // Print goals
     boardStateBuf << std::endl << std::to_string(boardState[P2_GOAL])
                   << std::setw(19) << std::to_string(boardState[P1_GOAL]) << std::endl;
 
-    for(int i = 0; i < P1_GOAL; ++i) {
+    // Print player 1 side
+    for(int i = P1_START; i < P1_GOAL; ++i) {
         boardStateBuf << " " << std::setw(2) << std::to_string(boardState[i]);
-    } // end for
+    }
 
+    // Return string stream
     return boardStateBuf.str();
 }
 
