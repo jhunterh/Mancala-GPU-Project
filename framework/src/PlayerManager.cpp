@@ -4,15 +4,9 @@
 namespace Player
 {
 
-const std::vector<Player*> PlayerManager::playerTypeList = {
-    new RandomPlayer()
+const std::vector<std::shared_ptr<Player>> PlayerManager::playerTypeList = {
+    std::shared_ptr<Player>(new RandomPlayer())
 };
-
-PlayerManager::~PlayerManager()
-{
-    // TODO: Fix memory leak
-    //for(uint8_t i = 0; i < playerList.size(); i++) delete playerList[i];
-}
 
 std::string PlayerManager::getPlayerList()
 {
