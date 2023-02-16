@@ -3,20 +3,21 @@
 
 #include <vector>
 
-#include "MancalaStatic.h"
 #include "Player.h"
 
-namespace Mancala {
+namespace Player {
 
 class RandomPlayer : public Player {
 public:
     RandomPlayer();
     ~RandomPlayer() = default;
 
-    int makeMove(std::vector<int> board) override;
+    playertype_t getPlayerType() override { return 0; }
+	std::string getDescription() override { return "Random Player"; }
+	Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum);
 
-}; // end class Player
+};
 
-} // end namespace Mancala
+}
 
 #endif

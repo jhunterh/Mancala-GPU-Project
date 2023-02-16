@@ -1,11 +1,9 @@
 #ifndef _GAMEMANAGER_H
 #define _GAMEMANAGER_H
 
-#include <memory>
 #include <vector>
 
 #include "Player.h"
-#include "MancalaStatic.h"
 
 namespace Mancala {
 
@@ -19,15 +17,8 @@ public:
     void startGame();
 
 private:
-    std::shared_ptr<Player> m_player1;
-    std::shared_ptr<Player> m_player2;
 
-    std::vector<int> m_gameBoard{std::vector<int>(14,4)};
-
-    int m_playerTurn = 1; // Player 1 goes first
-
-    bool makeMoveOnBoard(int move);
-    int determineWinner();
+    uint8_t m_playerTurn = 1; // Player 1 goes first
 
 }; // end class GameManager
 

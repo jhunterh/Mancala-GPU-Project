@@ -4,21 +4,21 @@
 
 #include "RandomPlayer.h"
 
-namespace Mancala {
+namespace Player {
+    
+RandomPlayer::RandomPlayer()
+{
+    srand(time(NULL));
+}
 
-    RandomPlayer::RandomPlayer() {
-        srand(time(NULL));
-    } // end default constructor
+Game::move_t RandomPlayer::selectMove(Game::GameBoard& board, playernum_t playerNum)
+{
+    Game::movelist_t moveList;
+    Game::movecount_t count = board.getMoves(moveList, playerNum);
+    
+    Game::movecount_t randomValue = (rand() % count);
 
-    int RandomPlayer::makeMove(std::vector<int> board) {
-
-        int playerNum = getPlayerNumber();
-
-        std::vector<int> validMoves = getValidMoves(board, playerNum);
-
-        int randomValue = (rand() % validMoves.size());
-
-        return validMoves[randomValue];
-    } // end method makeMove
+    return moveList[randomValue];
+}
 
 } // end namespace Mancala

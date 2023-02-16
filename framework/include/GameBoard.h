@@ -1,23 +1,24 @@
 #ifndef GAMEBOARD_H
 #define GAMEBOARD_H
 
+#include "defines.h"
 #include "game.h"
-#include <vector>
+#include <string>
 
 namespace Game {
 
 class GameBoard {
 public:
-    GameBoard();
-    ~GameBoard();
+    GameBoard() = default;
+    ~GameBoard() = default;
 
     void initBoard();
-    Game::boardstate_t getBoardState();
-    Game::moveresult_t executeP1Move(Game::move_t move);
-    Game::moveresult_t executeP2Move(Game::move_t move);
-    Game::movecount_t getP1Moves(Game::movelist_t* movesOut);
-    Game::movecount_t getP2Moves(Game::movelist_t* movesOut);
+    Game::boardstate_t* getBoardState();
+    Game::moveresult_t executeMove(Game::move_t move, Player::playernum_t playerNum);
+    Game::movecount_t getMoves(Game::movelist_t& movesOut, Player::playernum_t playerNum);
     Game::boardresult_t getBoardResult();
+    std::string getBoardStateString();
+
 
 private:
     Game::boardstate_t boardState;

@@ -3,20 +3,33 @@
 
 CPP = g++
 NVCC = nvcc
-INCLUDE = -I$(CURDIR)/include
-OBJECT = $(CURDIR)/build
-OUTPUT = -o $(CURDIR)/bin/$@
-SRC = $(CURDIR)/src
+BUILD_DIR = build
+OUTPUT_DIR = bin
 
-main: GameManager RandomPlayer
-	$(CPP) $(OUTPUT) $(INCLUDE) $(OBJECT)/*.o $(SRC)/$@.cpp
+FRAMEWORK_INCLUDE = -Iframework/include
+SIMULATION_INCLUDE = -Isimulation/include
 
-GameManager:
-	$(CPP) -c -o $(OBJECT)/$@.o $(INCLUDE) $(SRC)/$@.cpp
+FRAMEWORK_FILES = PlayerManager RandomPlayer
+GAME_FILES = GameBoard
+SIMULATION_FILES = main
 
-RandomPlayer:
-	$(CPP) -c -o $(OBJECT)/$@.o $(INCLUDE) $(SRC)/$@.cpp
+mancala: GAME = mancala
+mancala: setup $(FRAMEWORK_FILES) $(GAME_FILES) $(SIMULATION_FILES)
+	$(CPP) -std=c++11 $(FRAMEWORK_INCLUDE) -Igames/$(GAME)/include $(SIMULATION_INCLUDE) $(BUILD_DIR)/*.o -o $(OUTPUT_DIR)/$@
+
+$(FRAMEWORK_FILES):
+	$(CPP) -std=c++11 -c -o $(BUILD_DIR)/$@.o $(FRAMEWORK_INCLUDE) -Igames/$(GAME)/include framework/src/$@.cpp
+
+$(GAME_FILES):
+	$(CPP) -std=c++11 -c -o $(BUILD_DIR)/$@.o $(FRAMEWORK_INCLUDE) -Igames/$(GAME)/include games/$(GAME)/src/$@.cpp
+
+$(SIMULATION_FILES):
+	$(CPP) -std=c++11 -c -o $(BUILD_DIR)/$@.o $(FRAMEWORK_INCLUDE) -Igames/$(GAME)/include $(SIMULATION_INCLUDE) simulation/src/$@.cpp
+
+setup: clean
+	mkdir -p $(OUTPUT_DIR)
+	mkdir -p $(BUILD_DIR)
 
 clean:
-	rm -f build/*
-	rm -f bin/*
+	rm -rf $(BUILD_DIR)
+	rm -rf $(OUTPUT_DIR)
