@@ -15,10 +15,6 @@ public:
     // Note: The following functions are constant for each game, do not modify
     GameBoard() = default;
     ~GameBoard() = default;
-    
-    // Return the board state
-    Game::boardstate_t* getBoardState() { return &boardState; }
-
 
     // Note: The following functions are to be user-implemented for each game:
 
