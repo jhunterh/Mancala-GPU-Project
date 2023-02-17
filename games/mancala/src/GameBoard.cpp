@@ -1,7 +1,6 @@
 #include "GameBoard.h"
 #include <sstream>
 #include <iomanip>
-#include <iostream>
 
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -103,7 +102,11 @@ moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
         boardpos_t endPos = (pos + 13) % 14;
 
         // Handle end on empty space
-        if(boardState[endPos] == 1)
+        if(endPos == playerGoal)
+        {
+            result++;
+        }
+        else if(boardState[endPos] == 1)
         {
             // Capture last piece
             boardState[endPos] = 0;
@@ -113,11 +116,6 @@ moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
             boardpos_t otherPlayerSpot = 12 - endPos;
             boardState[playerGoal] += boardState[otherPlayerSpot];
             boardState[otherPlayerSpot] = 0;
-        }
-        else
-        {
-            // Handle end on goal (go again)
-            result += (endPos == playerGoal);
         }
 
         // Add 1 to result for valid move
@@ -147,19 +145,52 @@ movecount_t GameBoard::getMoves(movelist_t& movesOut, Player::playernum_t player
 // Return the board result
 boardresult_t GameBoard::getBoardResult()
 {
-    uint8_t p1Score = 0;
+    // Set initial board state
+    boardresult_t boardResult = GAME_ACTIVE;
+
+    // Get player side scores
+    uint8_t p1SideValue = 0;
     for(uint8_t i = P1_START; i < P1_GOAL; i++)
     {
-        p1Score += boardState[i];
+        p1SideValue += boardState[i];
     }
-
-    uint8_t p2Score = 0;
+    
+    uint8_t p2SideValue = 0;
     for(uint8_t i = P2_START; i < P2_GOAL; i++)
     {
-        p2Score += boardState[i];
+        p2SideValue += boardState[i];
     }
 
-    return (p1Score == 0) + (p2Score == 0)*2;
+    // Check if game is over
+    boardResult = ((p1SideValue == 0) || (p2SideValue == 0));
+
+    // If game over, move all pieces to goals
+    boardState[P1_GOAL] += p1SideValue*boardResult;
+    boardState[P2_GOAL] += p2SideValue*boardResult;
+
+    // If game over, reset rest of board
+    if(boardResult)
+    {
+        for(uint8_t i = P1_START; i < P1_GOAL; i++)
+        {
+            boardState[i] = 0;
+        }
+        
+        for(uint8_t i = P2_START; i < P2_GOAL; i++)
+        {
+            boardState[i] = 0;
+        }
+    }
+
+
+    // If P2 greater, then set to 2, but only if boardResult is already 1
+    boardResult += (boardState[P2_GOAL] > boardState[P1_GOAL])*(boardResult > 0);
+
+    // If P1 and P2 equal, then set to 3, but only if boardResult is already 1
+    boardResult += (boardState[P2_GOAL] == boardState[P1_GOAL])*2*(boardResult > 0);
+
+    // Return board result
+    return boardResult;
 }
 
 // Return the state of the board in string format
