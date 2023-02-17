@@ -24,7 +24,7 @@ std::string PlayerManager::getPlayerTypeList()
 
 // Select player type for player
 // Returns false if not a valid player number or type
-bool PlayerManager::selectPlayers(playernum_t playerNum, playertype_t playerType)
+bool PlayerManager::selectPlayers(playernum_t playerNum, player_t playerType)
 {
     // Check that player number is not out of range
     if(playerNum > PLAYER_NUMBER_MAX)

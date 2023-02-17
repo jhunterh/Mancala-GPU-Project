@@ -21,7 +21,7 @@ public:
 
     // Select player type for player
     // Returns false if not a valid player number or type
-    bool selectPlayers(playernum_t playerNum, playertype_t playerType);
+    bool selectPlayers(playernum_t playerNum, player_t playerType);
 
     // Get player-chosen move
     Game::move_t getMove(playernum_t playerNum, Game::GameBoard& board);
