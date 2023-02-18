@@ -1,5 +1,6 @@
 #include "PlayerManager.h"
 #include "RandomPlayer.h"
+#include "MonteCarloPlayer.h"
 
 namespace Player
 {
@@ -7,7 +8,8 @@ namespace Player
 // Static declaration of player types
 // Add new player types here
 const std::vector<std::shared_ptr<Player>> PlayerManager::playerTypeList = {
-    std::shared_ptr<Player>(new RandomPlayer())
+    std::shared_ptr<Player>(new RandomPlayer()),
+    std::shared_ptr<Player>(new MonteCarloPlayer())
 };
 
 // Returns list of player types
