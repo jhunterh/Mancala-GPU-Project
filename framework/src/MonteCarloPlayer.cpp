@@ -10,6 +10,7 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
     m_rootNode->boardState = board;
     m_rootNode->playerNum = playerNum;
     m_selectedNode = m_rootNode;
+    m_selectedNode->numTimesVisited = 1;
 
     runSearch(25); // TODO: udpate way for number of iterations to be set
 
@@ -24,23 +25,17 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
 // Run the algorithm for specified number of iterations
 void MonteCarloPlayer::runSearch(int numIterations) {
     for(int i = 0; i < numIterations; ++i) {
-        std::cout << "SELECTION" << std::endl;
         selection();
-        std::cout << "EXPANSION" << std::endl;
         expansion();
-        std::cout << "SIMULATION" << std::endl;
         simulation();
-        std::cout << "BACKPROPAGATION" << std::endl;
         backpropagation();
     }
 }
 
 void MonteCarloPlayer::selection() {
-    ++m_selectedNode->numTimesVisited;
     while(!MonteCarlo::isLeafNode(m_selectedNode)) {
         int nextNode = MonteCarlo::selectLeafNode(m_selectedNode->childNodes);
         m_selectedNode = m_selectedNode->childNodes[nextNode];
-        ++m_selectedNode->numTimesVisited;
     }
 }
 
@@ -60,7 +55,7 @@ void MonteCarloPlayer::expansion() {
         m_selectedNode->childNodes[i]->boardState = newState;
         if (result == 1) {
             if (m_selectedNode->playerNum == 1) {
-                m_selectedNode->childNodes[i]->playerNum = 2;
+                m_selectedNode->childNodes[i]->playerNum = 0;
             } else {
                 m_selectedNode->childNodes[i]->playerNum = 1;
             }
@@ -89,13 +84,13 @@ void MonteCarloPlayer::simulation() {
     Game::boardresult_t result = gameBoard.getBoardResult();
 
     while(result == 0) { // TODO: refactor
-    
+
         Game::move_t selectedMove = player.selectMove(gameBoard, playerTurn);
         Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
 
         if (moveResult == 1) {
             if (playerTurn == 1) {
-                playerTurn = 2;
+                playerTurn = 0;
             } else {
                 playerTurn = 1;
             }
@@ -106,10 +101,10 @@ void MonteCarloPlayer::simulation() {
         result = gameBoard.getBoardResult();
     }
     
-    if(result == m_rootNode->playerNum) {
+    if((result-1) == m_rootNode->playerNum) {
         ++m_selectedNode->numWins;
     }
-
+    ++m_selectedNode->numTimesVisited;
 }
 
 void MonteCarloPlayer::backpropagation() {
@@ -117,6 +112,7 @@ void MonteCarloPlayer::backpropagation() {
     MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, 2); // TODO: set exploration param
     while(m_selectedNode->parentNode != nullptr) {
         m_selectedNode = m_selectedNode->parentNode;
+        ++m_selectedNode->numTimesVisited;
         m_selectedNode->numWins += backPropValue;
         MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, 2);
     }
