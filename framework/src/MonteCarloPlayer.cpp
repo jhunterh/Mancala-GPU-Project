@@ -16,7 +16,7 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
     Game::movelist_t moveList;
     board.getMoves(moveList, playerNum);
 
-    int maxNode = MonteCarlo::getMaxNode(rootNode->childNodes);
+    int maxNode = MonteCarlo::getMaxNode(m_rootNode->childNodes);
 
     return moveList[maxNode];
 }
@@ -24,9 +24,13 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
 // Run the algorithm for specified number of iterations
 void MonteCarloPlayer::runSearch(int numIterations) {
     for(int i = 0; i < numIterations; ++i) {
+        std::cout << "SELECTION" << std::endl;
         selection();
+        std::cout << "EXPANSION" << std::endl;
         expansion();
+        std::cout << "SIMULATION" << std::endl;
         simulation();
+        std::cout << "BACKPROPAGATION" << std::endl;
         backpropagation();
     }
 }
@@ -77,7 +81,7 @@ void MonteCarloPlayer::expansion() {
 
 void MonteCarloPlayer::simulation() {
     // Declare two random players to duke it out
-    std::shared_ptr<Player> player = std::shared_ptr<Player>(new RandomPlayer());
+    RandomPlayer player;
 
     Game::GameBoard gameBoard = m_selectedNode->boardState;
     playernum_t playerTurn = m_selectedNode->playerNum;
@@ -85,8 +89,8 @@ void MonteCarloPlayer::simulation() {
     Game::boardresult_t result = gameBoard.getBoardResult();
 
     while(result == 0) { // TODO: refactor
-        
-        Game::move_t selectedMove = player->selectMove(gameBoard, playerTurn);
+    
+        Game::move_t selectedMove = player.selectMove(gameBoard, playerTurn);
         Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
 
         if (moveResult == 1) {
