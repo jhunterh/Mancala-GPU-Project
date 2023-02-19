@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 #include "game.h"
 #include "Player.h"
@@ -11,12 +12,13 @@
 namespace MonteCarlo {
 
 struct TreeNode {
-    Game::boardstate_t boardState;
+    Game::GameBoard boardState;
     Player::playernum_t playerNum;
     std::shared_ptr<TreeNode> parentNode = nullptr;
     std::vector<std::shared_ptr<TreeNode>> childNodes;
     double value = 0.0;
     unsigned int numTimesVisited = 0;
+    unsigned int numWins = 0;
 }
 
 static bool isLeafNode(std::shared_ptr<TreeNode> node) {
@@ -40,6 +42,12 @@ static int getMaxNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
         }
     }
     return maxNode;
+}
+
+// UCT is Upper Confidence Bound for Trees
+void getUCT(std::shared_ptr<TreeNode> node, unsigned int rootVisits, double explorationParam) {
+    double avg = node->numWins / node->numTimesVisited;
+    node->value = avg + explorationParam*sqrt(log(rootVisits) / node->numTimesVisited);
 }
 
 }

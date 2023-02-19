@@ -12,7 +12,7 @@ namespace Player {
 // This player selects a move based on the Monte Carlo Tree Search Algorithm
 class MonteCarloPlayer : public Player {
 public:
-    MonteCarloPlayer();
+    MonteCarloPlayer() = default;
     ~MonteCarloPlayer() = default;
 
     player_t getPlayerType() override { return 1; }
@@ -22,6 +22,7 @@ public:
 private:
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::shared_ptr<MonteCarlo::TreeNode> m_selectedNode = nullptr;
+    playernum_t m_playerNum;
     void runSearch(int numIterations);
     void selection();
     void expansion();
