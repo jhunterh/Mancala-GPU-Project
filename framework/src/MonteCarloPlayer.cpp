@@ -10,7 +10,6 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
     m_rootNode->boardState = board;
     m_rootNode->playerNum = playerNum;
     m_selectedNode = m_rootNode;
-    m_playerNum = playerNum;
 
     runSearch(25); // TODO: udpate way for number of iterations to be set
 
@@ -35,37 +34,45 @@ void MonteCarloPlayer::runSearch(int numIterations) {
 void MonteCarloPlayer::selection() {
     ++m_selectedNode->numTimesVisited;
     while(!MonteCarlo::isLeafNode(m_selectedNode)) {
-        int nextNode = MonteCarlo::getMaxNode(m_selectedNode->childNodes);
+        int nextNode = MonteCarlo::selectLeafNode(m_selectedNode->childNodes);
         m_selectedNode = m_selectedNode->childNodes[nextNode];
         ++m_selectedNode->numTimesVisited;
     }
 }
 
 void MonteCarloPlayer::expansion() {
-    if(m_selectedNode->numTimesVisited != 0) {
-        // Get list of possible moves
-        Game::movelist_t moveList;
-        Game::movecount_t count = m_selectedNode->boardState.getMoves(moveList, m_selectedNode->playerNum);
+    
+    // Get list of possible moves
+    Game::movelist_t moveList;
+    Game::movecount_t count = m_selectedNode->boardState.getMoves(moveList, m_selectedNode->playerNum);
 
-        // Expand the selected node
-        for(int i = 0; i < count; ++i) {
-            Game::GameBoard newState = m_selectedNode->boardState;
-            moveresult_t result = newState.executeMove(moveList[i], m_selectedNode->playerNum);
-            // TODO: Need to find a way to better get the next player's turn
-            if (result <= 0) {
-                std::cout << "INVALID MOVE" << std::endl;
+    // Expand the selected node
+    for(int i = 0; i < count; ++i) {
+        Game::GameBoard newState = m_selectedNode->boardState;
+        Game::moveresult_t result = newState.executeMove(moveList[i], m_selectedNode->playerNum);
+        // TODO: Need to find a way to better get the next player's turn
+        // Suggestion: Replace moveresult_t with playernum_t
+        m_selectedNode->childNodes.push_back(std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode()));
+        m_selectedNode->childNodes[i]->boardState = newState;
+        if (result == 1) {
+            if (m_selectedNode->playerNum == 1) {
+                m_selectedNode->childNodes[i]->playerNum = 2;
+            } else {
+                m_selectedNode->childNodes[i]->playerNum = 1;
             }
-            m_selectedNode->childNodes.push_back(std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode()));
-            m_selectedNode->childNodes[i]->boardState = newState;
-            m_selectedNode->childNodes[i]->playerNum = result; // This is stinky and needs a refactor
-            m_selectedNode->childNodes[i]->parentNode = m_selectedNode;
+        } else if (result == 2) {
+            m_selectedNode->childNodes[i]->playerNum = m_selectedNode->playerNum;
+        } else {
+            std::cout << "Invalid Move" << std::endl;
         }
-
-        // Select first new child node for simulation
-        if (count > 0) {
-            m_selectedNode = m_selectedNode->childNodes[0];
-        }
+        m_selectedNode->childNodes[i]->parentNode = m_selectedNode;
     }
+
+    // Select first new child node for simulation
+    if (count > 0) {
+        m_selectedNode = m_selectedNode->childNodes[0];
+    }
+    
 }
 
 void MonteCarloPlayer::simulation() {
@@ -75,20 +82,27 @@ void MonteCarloPlayer::simulation() {
     Game::GameBoard gameBoard = m_selectedNode->boardState;
     playernum_t playerTurn = m_selectedNode->playerNum;
 
-    boardresult_t result = gameBoard.getBoardResult();
+    Game::boardresult_t result = gameBoard.getBoardResult();
 
     while(result == 0) { // TODO: refactor
         
         Game::move_t selectedMove = player->selectMove(gameBoard, playerTurn);
-        moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
-        if(moveResult <= 0) {
-            std::cout << "INVALID MOVE" << std::endl;
+        Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
+
+        if (moveResult == 1) {
+            if (playerTurn == 1) {
+                playerTurn = 2;
+            } else {
+                playerTurn = 1;
+            }
+        } else if (moveResult == 0) {
+            std::cout << "Invalid Move" << std::endl;
         }
         
         result = gameBoard.getBoardResult();
     }
     
-    if(result == m_playerNum) {
+    if(result == m_rootNode->playerNum) {
         ++m_selectedNode->numWins;
     }
 
@@ -96,11 +110,11 @@ void MonteCarloPlayer::simulation() {
 
 void MonteCarloPlayer::backpropagation() {
     unsigned int backPropValue = m_selectedNode->numWins;
-    MonteCarlo::getUCT(m_selectedNode, m_rootNode->numTimesVisited, 2); // TODO: set exploration param
+    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, 2); // TODO: set exploration param
     while(m_selectedNode->parentNode != nullptr) {
         m_selectedNode = m_selectedNode->parentNode;
         m_selectedNode->numWins += backPropValue;
-        MonteCarlo::getUCT(m_selectedNode, m_rootNode->numTimesVisited, 2);
+        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, 2);
     }
 }
 

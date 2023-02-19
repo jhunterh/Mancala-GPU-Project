@@ -22,7 +22,6 @@ public:
 private:
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::shared_ptr<MonteCarlo::TreeNode> m_selectedNode = nullptr;
-    playernum_t m_playerNum;
     void runSearch(int numIterations);
     void selection();
     void expansion();

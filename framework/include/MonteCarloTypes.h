@@ -25,6 +25,29 @@ static bool isLeafNode(std::shared_ptr<TreeNode> node) {
     return (node->childNodes.size() <= 0);
 }
 
+// Get Leaf Node for Selection Algorithm
+// Same as getMaxNode except non-visited nodes are
+// prioritized instead of ignored
+static int selectLeafNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
+    if (nodeList.size() <= 0) {
+        std::cout << "Node List Has No Nodes!" << std::endl;
+        return -1
+    }
+
+    int maxNode = 0;
+
+    for(int i = 0; i < nodeList.size(); ++i) {
+        if(nodeList[i]->numTimesVisited == 0) {
+            maxNode = i;
+            break;
+        }
+        else if(nodeList[i]->value > nodeList[maxNode]->value) {
+            maxNode = i;
+        }
+    }
+    return maxNode;
+}
+
 static int getMaxNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
     if (nodeList.size() <= 0) {
         std::cout << "Node List Has No Nodes!" << std::endl;
@@ -44,8 +67,9 @@ static int getMaxNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
     return maxNode;
 }
 
+// Calculates the UCT for a given node
 // UCT is Upper Confidence Bound for Trees
-void getUCT(std::shared_ptr<TreeNode> node, unsigned int rootVisits, double explorationParam) {
+void calculateValue(std::shared_ptr<TreeNode> node, unsigned int rootVisits, double explorationParam) {
     double avg = node->numWins / node->numTimesVisited;
     node->value = avg + explorationParam*sqrt(log(rootVisits) / node->numTimesVisited);
 }
