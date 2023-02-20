@@ -43,9 +43,9 @@ int main(int argc, char **argv)
               << "Beginning game state:" << std::endl 
               << gameBoard.getBoardStateString() << std::endl << std::endl;
 
-    bool gameActive = true;
     Player::playernum_t activePlayer = Player::PLAYER_NUMBER_1;
-    while(gameActive)
+    Game::boardresult_t gameResult = Game::GAME_ACTIVE;
+    while(gameResult == Game::GAME_ACTIVE)
     {
         // Get move from player
         Game::move_t move = playerManager.getMove(activePlayer, gameBoard);
@@ -53,44 +53,34 @@ int main(int argc, char **argv)
         // Make move on board
         Game::moveresult_t moveResult = gameBoard.executeMove(move, activePlayer);
 
+        // Verify valid move result
+        if(!moveResult)
+        {
+            std::cout << "[ERROR] Incorrect move for player " << std::to_string(activePlayer) 
+                        << " given: " << std::to_string(move) << std::endl;
+            return 1;
+        }
+
+        // Print move and new board state
+        std::cout   << "Player " << std::to_string(activePlayer + 1)
+                    << " Makes Move: " << std::to_string(move) << std::endl 
+                    << "New board state:" << std::endl 
+                    << gameBoard.getBoardStateString() << std::endl << std::endl;
+
+        // Check move result
+        if(moveResult == Game::MOVE_SUCCESS)
+        {
+            // Switch players
+            activePlayer = !activePlayer;
+
+        }
+
         // Check if in end state
-        Game::boardresult_t gameResult = gameBoard.getBoardResult();
-
-        // Check game result
-        if(gameResult)
-        {
-            // If game over, stop game
-            gameActive = false;
-        }
-        else
-        {
-            // Check move result
-            if(!moveResult)
-            {
-                std::cout << "[ERROR] Incorrect move for player " << std::to_string(activePlayer) 
-                          << " given: " << std::to_string(move) << std::endl;
-                return 1;
-            }
-            else
-            {
-                // Print move and new board state
-                std::cout << "Player " << std::to_string(activePlayer + 1)
-                          << " Makes Move: " << std::to_string(move) << std::endl 
-                          << "New board state:" << std::endl 
-                          << gameBoard.getBoardStateString() << std::endl << std::endl;
-                if(moveResult == Game::MOVE_SUCCESS)
-                {
-                    // Switch players
-                    activePlayer = !activePlayer;
-
-                }
-            }
-        }
+        gameResult = gameBoard.getBoardResult(activePlayer);
         
     }
 
     // Output game win
-    Game::boardresult_t gameResult = gameBoard.getBoardResult();
     switch(gameResult)
     {
         case Game::GAME_OVER_PLAYER1_WIN:

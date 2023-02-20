@@ -20,11 +20,18 @@ Game::move_t RandomPlayer::selectMove(Game::GameBoard& board, playernum_t player
     Game::movelist_t moveList;
     Game::movecount_t count = board.getMoves(moveList, playerNum);
     
-    // Get random move index
-    Game::movecount_t randomValue = (rand() % count);
+    // Prevent floating point exceptions
+    if(count > 0)
+    {
+        // Get random move index
+        Game::movecount_t randomValue = (rand() % count);
 
-    // Return random move
-    return moveList[randomValue];
+        // Return random move
+        return moveList[randomValue];
+    }
+
+    // Return empty move
+    return Game::move_t();
 }
 
 }
