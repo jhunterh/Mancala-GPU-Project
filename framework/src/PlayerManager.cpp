@@ -29,7 +29,7 @@ std::string PlayerManager::getPlayerTypeList()
 bool PlayerManager::selectPlayers(playernum_t playerNum, player_t playerType)
 {
     // Check that player number is not out of range
-    if(playerNum > PLAYER_NUMBER_MAX)
+    if(playerNum > PLAYER_NUMBER_2)
     {
         return false;
     }
@@ -50,7 +50,7 @@ bool PlayerManager::selectPlayers(playernum_t playerNum, player_t playerType)
 Game::move_t PlayerManager::getMove(playernum_t playerNum, Game::GameBoard& board)
 {
     // Check that player number is not out of range
-    if(playerNum > PLAYER_NUMBER_MAX)
+    if(playerNum > PLAYER_NUMBER_2)
     {
         return Game::MOVE_INVALID;
     }

@@ -37,9 +37,6 @@ typedef #TYPE move_t;
 // OR
 struct move_t {};
 
-// Definition for a move result (success/failure)
-typedef #TYPE moveresult_t;
-
 // Definition of a movecount
 // Used for how many moves are in a movelist
 typedef #TYPE movecount_t;
@@ -48,24 +45,6 @@ typedef #TYPE movecount_t;
 // Used for returning moves from function
 // This should be a static array and not a vector due to CUDA constraints
 typedef move_t movelist_t[GAME_MAX_POSSIBLE_MOVES];
-
-// Definition of board result
-typedef #TYPE boardresult_t;
-
-};
-
-// This is here because a game may have more than two players
-namespace Player
-{
-
-// Player index (player 1 vs player 2)
-typedef #TYPE playernum_t;
-enum PlayerNumber
-{
-    // Definition of highest index of player
-    // Ex. a 2 person game would have a value of 1
-    PLAYER_NUMBER_MAX = 1,
-};
 
 };
 

@@ -33,7 +33,7 @@ private:
 
     // List of current players
     std::vector<std::shared_ptr<Player>> playerList = std::vector<std::shared_ptr<Player>>(
-        PLAYER_NUMBER_MAX + 1, playerTypeList[0]
+        PLAYER_NUMBER_2 + 1, playerTypeList[0]
     );
 };
 

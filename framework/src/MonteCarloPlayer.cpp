@@ -1,4 +1,5 @@
 #include "MonteCarloPlayer.h"
+#include "GameTypes.h"
 #include "RandomPlayer.h"
 
 namespace Player {
@@ -59,21 +60,21 @@ void MonteCarloPlayer::expansion() {
     for(int i = 0; i < count; ++i) {
         Game::GameBoard newState = m_selectedNode->boardState;
         Game::moveresult_t result = newState.executeMove(moveList[i], m_selectedNode->playerNum);
-        // TODO: Need to find a way to better get the next player's turn
-        // Suggestion: Replace moveresult_t with playernum_t
         m_selectedNode->childNodes.push_back(std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode()));
         m_selectedNode->childNodes[i]->boardState = newState;
-        if (result == 1) {
-            if (m_selectedNode->playerNum == 1) {
-                m_selectedNode->childNodes[i]->playerNum = 0;
+
+        if (result == Game::MOVE_SUCCESS) {
+            if (m_selectedNode->playerNum == PLAYER_NUMBER_2) {
+                m_selectedNode->childNodes[i]->playerNum = PLAYER_NUMBER_1;
             } else {
-                m_selectedNode->childNodes[i]->playerNum = 1;
+                m_selectedNode->childNodes[i]->playerNum = PLAYER_NUMBER_2;
             }
-        } else if (result == 2) {
+        } else if (result == Game::MOVE_SUCCESS_GO_AGAIN) {
             m_selectedNode->childNodes[i]->playerNum = m_selectedNode->playerNum;
         } else {
             std::cout << "Invalid Move" << std::endl;
         }
+
         m_selectedNode->childNodes[i]->parentNode = m_selectedNode;
     }
 
@@ -95,27 +96,28 @@ void MonteCarloPlayer::simulation() {
 
     Game::boardresult_t result = gameBoard.getBoardResult(playerTurn);
 
-    while(result == 0) { // TODO: refactor
+    while(result == Game::GAME_ACTIVE) {
 
         Game::move_t selectedMove = player.selectMove(gameBoard, playerTurn);
         Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
 
-        if (moveResult == 1) {
-            if (playerTurn == 1) {
-                playerTurn = 0;
+        if (moveResult == Game::MOVE_SUCCESS) {
+            if (playerTurn == PLAYER_NUMBER_2) {
+                playerTurn = PLAYER_NUMBER_1;
             } else {
-                playerTurn = 1;
+                playerTurn = PLAYER_NUMBER_2;
             }
-        } else if (moveResult == 0) {
+        } else if (moveResult == Game::MOVE_INVALID) {
             std::cout << "Invalid Move" << std::endl;
         }
         
         result = gameBoard.getBoardResult(playerTurn);
     }
     
-    if((result-1) == m_rootNode->playerNum) {
+    if(GameUtils::getPlayerFromBoardResult(result) == m_rootNode->playerNum) {
         ++m_selectedNode->numWins;
     }
+
     m_selectedNode->simulated = true;
 }
 
