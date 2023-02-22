@@ -28,7 +28,8 @@ public:
     Game::movecount_t getMoves(Game::movelist_t& movesOut, Player::playernum_t playerNum);
 
     // Return the board result
-    Game::boardresult_t getBoardResult();
+    // Current player number is needed for some games
+    Game::boardresult_t getBoardResult(Player::playernum_t currentPlayerNum);
 
     // Return the state of the board in string format
     std::string getBoardStateString();
