@@ -93,7 +93,7 @@ void MonteCarloPlayer::simulation() {
     Game::GameBoard gameBoard = m_selectedNode->boardState;
     playernum_t playerTurn = m_selectedNode->playerNum;
 
-    Game::boardresult_t result = gameBoard.getBoardResult();
+    Game::boardresult_t result = gameBoard.getBoardResult(playerTurn);
 
     while(result == 0) { // TODO: refactor
 
@@ -110,7 +110,7 @@ void MonteCarloPlayer::simulation() {
             std::cout << "Invalid Move" << std::endl;
         }
         
-        result = gameBoard.getBoardResult();
+        result = gameBoard.getBoardResult(playerTurn);
     }
     
     if((result-1) == m_rootNode->playerNum) {
