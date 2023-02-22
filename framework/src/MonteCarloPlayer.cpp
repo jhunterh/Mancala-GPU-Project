@@ -32,6 +32,7 @@ void MonteCarloPlayer::runSearch(int numIterations) {
     }
 }
 
+// selectd a node to expand
 void MonteCarloPlayer::selection() {
     ++m_selectedNode->numTimesVisited;
     while(!MonteCarlo::isLeafNode(m_selectedNode)) {
@@ -41,6 +42,7 @@ void MonteCarloPlayer::selection() {
     }
 }
 
+// expands selected node if it is eligible for expansion
 void MonteCarloPlayer::expansion() {
     
     // If this node hasn't been simulated,
@@ -83,6 +85,7 @@ void MonteCarloPlayer::expansion() {
     
 }
 
+// run a single simulation from the selected node
 void MonteCarloPlayer::simulation() {
     // Declare two random players to duke it out
     RandomPlayer player;
@@ -116,6 +119,7 @@ void MonteCarloPlayer::simulation() {
     m_selectedNode->simulated = true;
 }
 
+// propagates simulation results back to the gop of the tree
 void MonteCarloPlayer::backpropagation() {
     // numWins at this point should only be 0 or 1 for m_selectedNode
     // It is possible if a leaf node is simulated more than once

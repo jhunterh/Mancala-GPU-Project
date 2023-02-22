@@ -22,6 +22,7 @@ struct TreeNode {
     bool simulated = false;
 };
 
+// is the node a leaf node?
 static bool isLeafNode(std::shared_ptr<TreeNode> node) {
     return (node->childNodes.size() <= 0);
 }
@@ -49,6 +50,7 @@ static int selectLeafNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
     return maxNode;
 }
 
+// get node in list that maximizes value
 static int getMaxNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
     if (nodeList.size() <= 0) {
         std::cout << "Node List Has No Nodes!" << std::endl;
