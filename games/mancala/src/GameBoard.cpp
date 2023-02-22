@@ -143,7 +143,8 @@ movecount_t GameBoard::getMoves(movelist_t& movesOut, Player::playernum_t player
 }
 
 // Return the board result
-boardresult_t GameBoard::getBoardResult()
+// Current player number is needed for some games
+boardresult_t GameBoard::getBoardResult(Player::playernum_t currentPlayerNum)
 {
     // Set initial board state
     boardresult_t boardResult = GAME_ACTIVE;
@@ -162,7 +163,8 @@ boardresult_t GameBoard::getBoardResult()
     }
 
     // Check if game is over
-    boardResult = ((p1SideValue == 0) || (p2SideValue == 0));
+    boardResult = (((p1SideValue == 0)*(currentPlayerNum == Player::PLAYER_NUMBER_1)) || 
+                    ((p2SideValue == 0)*(currentPlayerNum == Player::PLAYER_NUMBER_2)));
 
     // If game over, move all pieces to goals
     boardState[P1_GOAL] += p1SideValue*boardResult;
