@@ -9,6 +9,8 @@
 #include "game.h"
 #include "Player.h"
 
+#define ITERATION_COUNT 1000
+
 namespace MonteCarlo {
 
 struct TreeNode {

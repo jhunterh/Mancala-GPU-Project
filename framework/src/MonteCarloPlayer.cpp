@@ -13,7 +13,7 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
     m_rootNode->simulated = true; // no use in simulating this node
     m_selectedNode = m_rootNode;
 
-    runSearch(1000); // TODO: udpate way for number of iterations to be set
+    runSearch(ITERATION_COUNT); // TODO: udpate way for number of iterations to be set
 
     Game::movelist_t moveList;
     board.getMoves(moveList, playerNum);
