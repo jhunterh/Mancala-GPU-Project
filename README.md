@@ -9,6 +9,13 @@ $ make game=example
 
 where example is the name of your custom game.
 
+## Game Guidlines
+Any game that is made for this framework must follow these rules:
+1. The game must have two players
+2. The game board must be able to be described with a simple vector or array
+3. Each move during a game can only result in one of the two players getting marked to have the next turn.
+4. Each game must have a finished state in which one of two players is a winner or the result is a tie.
+
 ## Example Simulation
 To run the included example simulation, run the follwing command:
 ```

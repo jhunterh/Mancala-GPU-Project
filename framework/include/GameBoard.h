@@ -2,6 +2,7 @@
 #define GAMEBOARD_H
 
 #include "game.h"
+#include "GameTypes.h"
 #include <string>
 
 namespace Game {
