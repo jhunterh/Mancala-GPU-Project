@@ -2,14 +2,13 @@
 #define _MONTECARLOPLAYERMT_H
 
 #include <vector>
-#include <atomic>
 
 #include "MonteCarloPlayer.h"
 
-#define NUM_END_STATES_DESIRED 4
+#define NUM_END_STATES_DESIRED 25
 #define NUM_THREADS 4
-#define EXPLORATION_PARAM 5
-#define ITERATION_COUNT 1000
+#define EXPLORATION_PARAM 1
+#define ITERATION_COUNT 500
 
 namespace Player {
 
@@ -29,9 +28,7 @@ protected:
     void backpropagation() override;
 
 private:
-    std::atomic<unsigned int> m_endStatesFound;
-    std::atomic<unsigned int> m_winStatesFound;
-    void simulationThread();
+    void simulationThread(std::atomic<unsigned int>& endStatesFound, std::atomic<unsigned int>& winStatesFound);
 };
 
 }

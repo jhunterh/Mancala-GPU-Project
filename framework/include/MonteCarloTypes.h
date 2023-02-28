@@ -75,7 +75,6 @@ static int getMaxNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
 // UCT is Upper Confidence Bound for Trees
 static void calculateValue(std::shared_ptr<TreeNode> node, unsigned int rootVisits, double explorationParam) {
     double avg = node->numWins / node->numTimesVisited;
-    //std::cout << avg << std::endl;
     node->value = avg + explorationParam*sqrt(log(rootVisits) / node->numTimesVisited);
 }
 

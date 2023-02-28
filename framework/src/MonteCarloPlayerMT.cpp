@@ -1,5 +1,6 @@
 #include <thread>
 #include <functional>
+#include <atomic>
 
 #include "MonteCarloPlayerMT.h"
 #include "GameTypes.h"
@@ -20,13 +21,13 @@ void MonteCarloPlayerMT::runSearch() {
 // run a single simulation from the selected node
 void MonteCarloPlayerMT::simulation() {
 
-    m_endStatesFound = 0;
-    m_endStatesFound = 0;
+    std::atomic<unsigned int> endStatesFound(0);
+    std::atomic<unsigned int> winStatesFound(0);
 
     // start threads
     std::vector<std::thread> threads;
     for(unsigned int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this);
+        threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this, std::ref(endStatesFound), std::ref(winStatesFound));
     }
 
     // sync threads
@@ -34,11 +35,7 @@ void MonteCarloPlayerMT::simulation() {
         thread.join();
     }
 
-    std::cout << m_winStatesFound << std::endl;
-
-    double avgWins = m_winStatesFound / m_endStatesFound;
-
-    //std::cout << avgWins << std::endl;
+    double avgWins = ((double) winStatesFound) / endStatesFound;
 
     m_selectedNode->numWins += avgWins;
     m_selectedNode->simulated = true;
@@ -51,7 +48,7 @@ void MonteCarloPlayerMT::backpropagation() {
     // It is possible if a leaf node is simulated more than once
     // for numWins to be greater than 1, but that breaks the tree's win/loss ratios
     // so I handle that case with the conditional below
-    unsigned int backPropValue = (m_selectedNode->numWins > 1) ? 1 : m_selectedNode->numWins;
+    double backPropValue = (m_selectedNode->numWins > 1) ? 1 : m_selectedNode->numWins;
     MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM);
     while(m_selectedNode->parentNode != nullptr) {
         m_selectedNode = m_selectedNode->parentNode;
@@ -60,10 +57,10 @@ void MonteCarloPlayerMT::backpropagation() {
     }
 }
 
-void MonteCarloPlayerMT::simulationThread() {
+void MonteCarloPlayerMT::simulationThread(std::atomic<unsigned int>& endStatesFound, std::atomic<unsigned int>& winStatesFound) {
 
-    while(m_endStatesFound < NUM_END_STATES_DESIRED) {
-        ++m_endStatesFound;
+    while(endStatesFound < NUM_END_STATES_DESIRED) {
+        ++endStatesFound;
 
         // Declare two random players to duke it out
         RandomPlayer player;
@@ -92,7 +89,7 @@ void MonteCarloPlayerMT::simulationThread() {
         }
         
         if(GameUtils::getPlayerFromBoardResult(result) == m_rootNode->playerNum) {
-            ++m_winStatesFound;
+            ++winStatesFound;
         }
     }
 }
