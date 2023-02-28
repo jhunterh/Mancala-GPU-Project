@@ -13,7 +13,7 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
     m_rootNode->simulated = true; // no use in simulating this node
     m_selectedNode = m_rootNode;
 
-    runSearch(ITERATION_COUNT); // TODO: udpate way for number of iterations to be set
+    runSearch();
 
     Game::movelist_t moveList;
     board.getMoves(moveList, playerNum);
@@ -24,8 +24,8 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
 }
 
 // Run the algorithm for specified number of iterations
-void MonteCarloPlayer::runSearch(int numIterations) {
-    for(int i = 0; i < numIterations; ++i) {
+void MonteCarloPlayer::runSearch() {
+    for(int i = 0; i < ITERATION_COUNT; ++i) {
         selection();
         expansion();
         simulation();
@@ -128,11 +128,11 @@ void MonteCarloPlayer::backpropagation() {
     // for numWins to be greater than 1, but that breaks the tree's win/loss ratios
     // so I handle that case with the conditional below
     unsigned int backPropValue = (m_selectedNode->numWins > 1) ? 1 : m_selectedNode->numWins;
-    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, 2); // TODO: set exploration param
+    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM);
     while(m_selectedNode->parentNode != nullptr) {
         m_selectedNode = m_selectedNode->parentNode;
         m_selectedNode->numWins += backPropValue;
-        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, 2);
+        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM);
     }
 }
 

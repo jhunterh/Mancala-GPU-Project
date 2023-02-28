@@ -18,7 +18,7 @@ GAME_INCLUDE = -Igames/$(game)/include
 SIMULATION_INCLUDES = -Isimulation/include -Ibuild/include
 
 ## Files
-FRAMEWORK_FILES = PlayerManager RandomPlayer MonteCarloPlayer
+FRAMEWORK_FILES = PlayerManager RandomPlayer MonteCarloPlayer MonteCarloPlayerMT
 GAME_FILES = GameBoard
 SIMULATION_FILES = main
 
@@ -28,7 +28,7 @@ GAME_LIB = $(LIB_DIR)/lib$(game).a
 ## Targets
 # Builds simulation executable
 simulation: $(GAME_LIB)
-	@$(CPP) $(CFLAGS) $(SIMULATION_INCLUDES) simulation/src/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@
+	@$(CPP) $(CFLAGS) $(SIMULATION_INCLUDES) simulation/src/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@ -lpthread
 
 # Builds game library
 lib: $(GAME_LIB)
