@@ -22,7 +22,7 @@ namespace Player {
 class MonteCarloPlayerMT : public MonteCarloPlayer {
 public:
     MonteCarloPlayerMT();
-    ~MonteCarloPlayerMT() = default;
+    ~MonteCarloPlayerMT();
 
     std::string getDescription() override { return "Monte Carlo Player Multi-Threaded"; }
     player_t getPlayerType() override { return 2; }

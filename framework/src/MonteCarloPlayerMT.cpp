@@ -4,11 +4,15 @@
 
 namespace Player {
 
-    MonteCarloPlayerMT::MonteCarloPlayerMT() {
-        for(unsigned int i = 0; i < NUM_THREADS; ++i) {
-            m_threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this);
-        }
+MonteCarloPlayerMT::MonteCarloPlayerMT() {
+    for(unsigned int i = 0; i < NUM_THREADS; ++i) {
+        m_threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this);
     }
+}
+
+MonteCarloPlayerMT::~MonteCarloPlayerMT() {
+    for(auto& thread : m_threads) thread.~thread();
+}
 
 // Run the algorithm for specified number of iterations
 void MonteCarloPlayerMT::runSearch() {
