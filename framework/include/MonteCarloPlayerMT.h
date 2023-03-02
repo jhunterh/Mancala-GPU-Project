@@ -2,6 +2,11 @@
 #define _MONTECARLOPLAYERMT_H
 
 #include <vector>
+#include <mutex>
+#include <atomic>
+#include <condition_variable>
+#include <thread>
+#include <functional>
 
 #include "MonteCarloPlayer.h"
 
@@ -16,7 +21,7 @@ namespace Player {
 // This player selects a move based on the Monte Carlo Tree Search Algorithm
 class MonteCarloPlayerMT : public MonteCarloPlayer {
 public:
-    MonteCarloPlayerMT() = default;
+    MonteCarloPlayerMT();
     ~MonteCarloPlayerMT() = default;
 
     std::string getDescription() override { return "Monte Carlo Player Multi-Threaded"; }
@@ -28,7 +33,13 @@ protected:
     void backpropagation() override;
 
 private:
-    void simulationThread(std::atomic<unsigned int>& endStatesFound, std::atomic<unsigned int>& winStatesFound);
+    void simulationThread();
+    std::vector<std::thread> m_threads;
+    std::atomic<unsigned int> m_endStatesFound;
+    std::atomic<unsigned int> m_winStatesFound;
+    std::atomic<bool> m_simulationDoneFlag;
+    std::mutex m_simulationMutex;
+    std::condition_variable m_simulationCondition;
 };
 
 }

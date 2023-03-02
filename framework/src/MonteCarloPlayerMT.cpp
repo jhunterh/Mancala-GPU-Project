@@ -1,12 +1,14 @@
-#include <thread>
-#include <functional>
-#include <atomic>
-
 #include "MonteCarloPlayerMT.h"
 #include "GameTypes.h"
 #include "RandomPlayer.h"
 
 namespace Player {
+
+    MonteCarloPlayerMT::MonteCarloPlayerMT() {
+        for(unsigned int i = 0; i < NUM_THREADS; ++i) {
+            m_threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this);
+        }
+    }
 
 // Run the algorithm for specified number of iterations
 void MonteCarloPlayerMT::runSearch() {
@@ -21,21 +23,14 @@ void MonteCarloPlayerMT::runSearch() {
 // run a single simulation from the selected node
 void MonteCarloPlayerMT::simulation() {
 
-    std::atomic<unsigned int> endStatesFound(0);
-    std::atomic<unsigned int> winStatesFound(0);
+    m_endStatesFound.store(0);
+    m_winStatesFound.store(0);
+    m_simulationDoneFlag.store(false);
+    m_simulationCondition.notify_all();
 
-    // start threads
-    std::vector<std::thread> threads;
-    for(unsigned int i = 0; i < NUM_THREADS; ++i) {
-        threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this, std::ref(endStatesFound), std::ref(winStatesFound));
-    }
+    while(!m_simulationDoneFlag);
 
-    // sync threads
-    for(auto& thread : threads) {
-        thread.join();
-    }
-
-    double avgWins = ((double) winStatesFound) / endStatesFound;
+    double avgWins = ((double) m_winStatesFound) / NUM_END_STATES_DESIRED;
 
     m_selectedNode->numWins += avgWins;
     m_selectedNode->simulated = true;
@@ -57,40 +52,45 @@ void MonteCarloPlayerMT::backpropagation() {
     }
 }
 
-void MonteCarloPlayerMT::simulationThread(std::atomic<unsigned int>& endStatesFound, std::atomic<unsigned int>& winStatesFound) {
+void MonteCarloPlayerMT::simulationThread() {
+    std::unique_lock<std::mutex> lck(m_simulationMutex);
+    while(1) {
 
-    while(endStatesFound < NUM_END_STATES_DESIRED) {
-        ++endStatesFound;
+        m_simulationCondition.wait(lck);
+        
+        while(m_endStatesFound++ < NUM_END_STATES_DESIRED) {
+    
+            // Declare two random players to duke it out
+            RandomPlayer player;
 
-        // Declare two random players to duke it out
-        RandomPlayer player;
+            Game::GameBoard gameBoard = m_selectedNode->boardState;
+            playernum_t playerTurn = m_selectedNode->playerNum;
 
-        Game::GameBoard gameBoard = m_selectedNode->boardState;
-        playernum_t playerTurn = m_selectedNode->playerNum;
+            Game::boardresult_t result = gameBoard.getBoardResult(playerTurn);
 
-        Game::boardresult_t result = gameBoard.getBoardResult(playerTurn);
+            while(result == Game::GAME_ACTIVE) {
 
-        while(result == Game::GAME_ACTIVE) {
+                Game::move_t selectedMove = player.selectMove(gameBoard, playerTurn);
+                Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
 
-            Game::move_t selectedMove = player.selectMove(gameBoard, playerTurn);
-            Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
-
-            if (moveResult == Game::MOVE_SUCCESS) {
-                if (playerTurn == PLAYER_NUMBER_2) {
-                    playerTurn = PLAYER_NUMBER_1;
-                } else {
-                    playerTurn = PLAYER_NUMBER_2;
+                if (moveResult == Game::MOVE_SUCCESS) {
+                    if (playerTurn == PLAYER_NUMBER_2) {
+                        playerTurn = PLAYER_NUMBER_1;
+                    } else {
+                        playerTurn = PLAYER_NUMBER_2;
+                    }
+                } else if (moveResult == Game::MOVE_INVALID) {
+                    std::cout << "Invalid Move" << std::endl;
                 }
-            } else if (moveResult == Game::MOVE_INVALID) {
-                std::cout << "Invalid Move" << std::endl;
+                
+                result = gameBoard.getBoardResult(playerTurn);
             }
             
-            result = gameBoard.getBoardResult(playerTurn);
+            if(GameUtils::getPlayerFromBoardResult(result) == m_rootNode->playerNum) {
+                ++m_winStatesFound;
+            }
         }
-        
-        if(GameUtils::getPlayerFromBoardResult(result) == m_rootNode->playerNum) {
-            ++winStatesFound;
-        }
+        m_simulationDoneFlag.store(true);
     }
 }
 
