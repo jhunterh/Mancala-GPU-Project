@@ -5,6 +5,15 @@
 #include "GameTypes.h"
 #include <string>
 
+// CUDA flags
+#ifndef __host__
+#define __host__
+#endif
+
+#ifndef __device__
+#define __device__
+#endif
+
 namespace Game {
 
 // GameBoard class
@@ -23,14 +32,14 @@ public:
     void initBoard();
 
     // Execute a move on the board for a given player
-    Game::moveresult_t executeMove(Game::move_t move, Player::playernum_t playerNum);
+    __host__ __device__ Game::moveresult_t executeMove(Game::move_t move, Player::playernum_t playerNum);
 
     // Return the possible move on the board for a given player
-    Game::movecount_t getMoves(Game::movelist_t& movesOut, Player::playernum_t playerNum);
+    __host__ __device__ Game::movecount_t getMoves(Game::movelist_t& movesOut, Player::playernum_t playerNum);
 
     // Return the board result
     // Current player number is needed for some games
-    Game::boardresult_t getBoardResult(Player::playernum_t currentPlayerNum);
+    __host__ __device__ Game::boardresult_t getBoardResult(Player::playernum_t currentPlayerNum);
 
     // Return the state of the board in string format
     std::string getBoardStateString();

@@ -78,7 +78,7 @@ void GameBoard::initBoard()
 }
 
 // Execute a move on the board for a given player
-moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
+__host__ __device__ moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
 {
     moveresult_t result = 0;
     squarestate_t playerStart = playerNum*P2_START;
@@ -126,7 +126,7 @@ moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
 }
 
 // Return the possible move on the board for a given player
-movecount_t GameBoard::getMoves(movelist_t& movesOut, Player::playernum_t playerNum)
+__host__ __device__ movecount_t GameBoard::getMoves(movelist_t& movesOut, Player::playernum_t playerNum)
 {
     // Loop through each move
     movecount_t moveCount = 0;
@@ -144,7 +144,7 @@ movecount_t GameBoard::getMoves(movelist_t& movesOut, Player::playernum_t player
 
 // Return the board result
 // Current player number is needed for some games
-boardresult_t GameBoard::getBoardResult(Player::playernum_t currentPlayerNum)
+__host__ __device__ boardresult_t GameBoard::getBoardResult(Player::playernum_t currentPlayerNum)
 {
     // Set initial board state
     boardresult_t boardResult = GAME_ACTIVE;

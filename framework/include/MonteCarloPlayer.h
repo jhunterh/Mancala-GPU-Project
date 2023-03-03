@@ -19,13 +19,16 @@ public:
 	std::string getDescription() override { return "Monte Carlo Player"; }
 	Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum);
 
-private:
+protected:
+    void simulation();
+    
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::shared_ptr<MonteCarlo::TreeNode> m_selectedNode = nullptr;
+
+private:
     void runSearch(int numIterations);
     void selection();
     void expansion();
-    void simulation();
     void backpropagation();
 };
 
