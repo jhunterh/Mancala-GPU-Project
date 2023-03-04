@@ -4,7 +4,7 @@
 CPP = g++
 NVCC = nvcc
 CFLAGS = -std=c++11 #-O3
-CUDA_ARCH = sm_60
+CUDA_ARCH = -arch=sm_60
 
 ## Directories
 BUILD_DIR = build
@@ -34,13 +34,12 @@ GAME_LIB = $(LIB_DIR)/lib$(game).a
 ## Targets
 # Builds simulation executable
 simulation: $(GAME_LIB)
-	@$(NVCC) $(CFLAGS) $(SIMULATION_INCLUDES) $(CUDA_LINKS) simulation/src/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@
+	@$(CPP) $(CFLAGS) $(SIMULATION_INCLUDES) $(CUDA_LINKS) simulation/src/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@
 
 # Builds game library
 lib: $(GAME_LIB)
-$(GAME_LIB): setup $(FRAMEWORK_FILES) $(FRAMEWORK_CUDA_FILES) $(GAME_FILES) $(CUDA_FILES)
-#$(GAME_LIB): setup $(FRAMEWORK_CUDA_FILES)
-#	@$(NVCC) $(CFLAGS) -dlink $(ARTIFACTS_DIR)/*_CUDA.o -o $(ARTIFACTS_DIR)/cudalink.o $(FRAMEWORK_INCLUDE) $(GAME_INCLUDE) $(CUDA_LINKS) -arch=$(CUDA_ARCH)
+$(GAME_LIB): setup $(FRAMEWORK_FILES) $(FRAMEWORK_CUDA_FILES) $(GAME_FILES)
+	@$(NVCC) $(CUDA_ARCH) $(CFLAGS) -dlink $(ARTIFACTS_DIR)/*.o $(FRAMEWORK_INCLUDE) $(GAME_INCLUDE) $(CUDA_LINKS) -o $(ARTIFACTS_DIR)/cudalink.o
 	@ar rcs $(GAME_LIB) $(ARTIFACTS_DIR)/*.o
 	@cp framework/include/* $(INCLUDE_DIR)/
 	@cp games/$(game)/include/* $(INCLUDE_DIR)/
@@ -52,12 +51,11 @@ $(FRAMEWORK_FILES):
 
 # Builds cuda objects associated with framework
 $(FRAMEWORK_CUDA_FILES):
-	@$(NVCC) $(CFLAGS) -dc -o $(ARTIFACTS_DIR)/$@_CUDA.o $(FRAMEWORK_INCLUDE) $(GAME_INCLUDE) $(CUDA_LINKS) -arch=$(CUDA_ARCH) framework/src/$@.cu
+	@$(NVCC) $(CUDA_ARCH) $(CFLAGS) -x cu -dc -o $(ARTIFACTS_DIR)/$@.o $(FRAMEWORK_INCLUDE) $(GAME_INCLUDE) $(CUDA_LINKS) framework/src/$@.cpp
 
 # Builds objects associated with the game definition
 $(GAME_FILES):
-	@$(CPP) $(CFLAGS) -c -o $(ARTIFACTS_DIR)/$@.o $(FRAMEWORK_INCLUDE) $(GAME_INCLUDE) games/$(game)/src/$@.cpp
-	@$(NVCC) $(CFLAGS) -c -o $(ARTIFACTS_DIR)/$@_CUDA.o $(FRAMEWORK_INCLUDE) $(GAME_INCLUDE) $(CUDA_LINKS) -arch=$(CUDA_ARCH) games/$(game)/src/$@.cpp
+	@$(NVCC) $(CUDA_ARCH) $(CFLAGS) -x cu -dc -o $(ARTIFACTS_DIR)/$@.o $(FRAMEWORK_INCLUDE) $(GAME_INCLUDE) $(CUDA_LINKS) games/$(game)/src/$@.cpp
 
 # Setups build enviroment
 setup: clean
@@ -70,3 +68,11 @@ setup: clean
 # Cleans build directory
 clean:
 	@rm -rf $(BUILD_DIR)
+
+# Launches run script
+run: build/bin/simulation
+	@rm -f *.nsys-rep *.i* *.o* core.*
+	@echo -ne "gpu\n1\n\n10gb\n1\nampere\ngame_simulation\n" | \
+		run_gpu .runSimulation.sh > /dev/null
+	@sleep 5
+	@tail -f *.o*

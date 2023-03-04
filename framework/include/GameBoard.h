@@ -6,13 +6,11 @@
 #include <string>
 
 // CUDA flags
-#ifndef __host__
-#define __host__
-#endif
-
-#ifndef __device__
-#define __device__
-#endif
+#ifdef __CUDACC__
+#define CUDA_CALLABLE_MEMBER __host__ __device__
+#else
+#define CUDA_CALLABLE_MEMBER
+#endif 
 
 namespace Game {
 
@@ -32,14 +30,14 @@ public:
     void initBoard();
 
     // Execute a move on the board for a given player
-    __host__ __device__ Game::moveresult_t executeMove(Game::move_t move, Player::playernum_t playerNum);
+    CUDA_CALLABLE_MEMBER Game::moveresult_t executeMove(Game::move_t move, Player::playernum_t playerNum);
 
     // Return the possible move on the board for a given player
-    __host__ __device__ Game::movecount_t getMoves(Game::movelist_t& movesOut, Player::playernum_t playerNum);
+    CUDA_CALLABLE_MEMBER Game::movecount_t getMoves(Game::movelist_t& movesOut, Player::playernum_t playerNum);
 
     // Return the board result
     // Current player number is needed for some games
-    __host__ __device__ Game::boardresult_t getBoardResult(Player::playernum_t currentPlayerNum);
+    CUDA_CALLABLE_MEMBER Game::boardresult_t getBoardResult(Player::playernum_t currentPlayerNum);
 
     // Return the state of the board in string format
     std::string getBoardStateString();

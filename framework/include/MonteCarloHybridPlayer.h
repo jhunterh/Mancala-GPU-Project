@@ -19,9 +19,12 @@ public:
     player_t getPlayerType() override { return 3; }
 	std::string getDescription() override { return "Monte Carlo Hybrid Player"; }
 
-private:
-    void simulation();
+protected:
+    void runSearch() override;
+    void simulation() override;
+    void backpropagation() override;
 
+private:
     curandStateMtgp32* devMTGPStates;
     mtgp32_kernel_params* devKernelParams;
 };
