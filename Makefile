@@ -6,6 +6,10 @@ NVCC = nvcc
 CFLAGS = -std=c++11 #-O3
 CUDA_ARCH = -arch=sm_60
 
+ifeq ($(mode), debug)
+	CFLAGS += -g
+endif
+
 ## Directories
 BUILD_DIR = build
 ARTIFACTS_DIR = build/artifacts
@@ -73,7 +77,7 @@ clean:
 # Launches run script
 run: build/bin/simulation
 	@rm -f *.nsys-rep *.i* *.o* core.*
-	@echo -ne "gpu\n1\n\n10gb\n1\nampere\ngame_simulation\n" | \
+	@echo -ne "gpu\n1\n\n1gb\n1\nampere\ngame_simulation\n" | \
 		run_gpu .runSimulation.sh > /dev/null
 	@sleep 5
 	@tail -f *.o*
