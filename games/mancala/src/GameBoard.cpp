@@ -100,13 +100,16 @@ CUDA_CALLABLE_MEMBER moveresult_t GameBoard::executeMove(move_t move, Player::pl
             boardState[pos] += addValue;
         }
         boardpos_t endPos = (pos + 13) % 14;
+        Player::playernum_t playerSide = endPos/P2_START;
 
         // Handle end on empty space
         if(endPos == playerGoal)
         {
             result++;
         }
-        else if(boardState[endPos] == 1)
+
+        // make sure to check if on your side as well
+        else if(boardState[endPos] == 1 && playerSide == playerNum)
         {
             // Capture last piece
             boardState[endPos] = 0;
