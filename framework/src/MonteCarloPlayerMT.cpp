@@ -2,6 +2,9 @@
 #include "GameTypes.h"
 #include "RandomPlayer.h"
 
+#define EXPLORATION_PARAM 1
+#define ITERATION_COUNT 500
+
 namespace Player {
 
 MonteCarloPlayerMT::MonteCarloPlayerMT() {
@@ -16,7 +19,7 @@ MonteCarloPlayerMT::~MonteCarloPlayerMT() {
 
 // Run the algorithm for specified number of iterations
 void MonteCarloPlayerMT::runSearch() {
-    for(int i = 0; i < ITERATION_COUNT; ++i) {
+    for(size_t i = 0; i < ITERATION_COUNT; ++i) {
         selection();
         expansion();
         simulation();

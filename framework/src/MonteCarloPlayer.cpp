@@ -2,6 +2,9 @@
 #include "GameTypes.h"
 #include "RandomPlayer.h"
 
+#define EXPLORATION_PARAM 2
+#define ITERATION_COUNT 1000
+
 namespace Player {
 
 // Select a move from the given boardstate
@@ -25,7 +28,7 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
 
 // Run the algorithm for specified number of iterations
 void MonteCarloPlayer::runSearch() {
-    for(int i = 0; i < ITERATION_COUNT; ++i) {
+    for(size_t i = 0; i < ITERATION_COUNT; ++i) {
         selection();
         expansion();
         simulation();

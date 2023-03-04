@@ -8,10 +8,13 @@
 #include <curand_mtgp32_host.h>
 #include <curand_mtgp32dc_p_11213.h>
 
-#define PLAYCOUNT_THRESHOLD 1000
-#define BLOCK_SIZE 1024
 #define EXPLORATION_PARAM 1
 #define ITERATION_COUNT 500
+#define PLAYCOUNT_THRESHOLD 10000
+#define BLOCK_SIZE 1024
+#define MAX_THREADS_PER_CURAND 256
+
+#define CURAND_SIZE ((BLOCK_SIZE + MAX_THREADS_PER_CURAND - 1) / BLOCK_SIZE)
 
 #define CUDA_CALL(x) do { if((x) != cudaSuccess) { \
     printf("%s at %s:%d\n",cudaGetErrorString(x),__FILE__,__LINE__); \
@@ -21,7 +24,6 @@
     printf("%d at %s:%d\n",x,__FILE__,__LINE__); \
     exit(x);}} while(0)
 
-typedef unsigned int gpu_count_t;
 struct gpu_result
 {
     gpu_count_t winCount[2] = { 0, 0 };
@@ -38,14 +40,18 @@ __global__ void simulationKernel(gpu_count_t* gpu_result_out, curandStateMtgp32_
     // Initialize result memory (to be copied out later)
     // First two are players, third is total play count
     __shared__ gpu_count_t resultCount[RESULT_SIZE];
+    __shared__ curandStateMtgp32_t curandStateShared[CURAND_SIZE];
 
     // Init result counts to 0
     if(threadIdx.x < RESULT_SIZE)
-        gpu_result_out[threadIdx.x] = 0;
+        resultCount[threadIdx.x] = 0;
     __syncthreads();
 
     // Grab curand state 
-    curandStateMtgp32_t curandStateLocal = curandState[threadIdx.x];
+    unsigned int curandStateIdx = threadIdx.x/MAX_THREADS_PER_CURAND;
+    if(threadIdx.x == curandStateIdx)
+        curandStateShared[curandStateIdx] = curandState[curandStateIdx];
+    __syncthreads();
 
     // Init search states
     Player::playernum_t currentPlayerTurn = initPlayerTurn;
@@ -56,7 +62,6 @@ __global__ void simulationKernel(gpu_count_t* gpu_result_out, curandStateMtgp32_
     while(resultCount[2] < PLAYCOUNT_THRESHOLD)
     {
         // Pick random move and execute
-        // TODO: Use CURAND
 
         // Get list of possible moves
         Game::movelist_t moveList;
@@ -66,13 +71,13 @@ __global__ void simulationKernel(gpu_count_t* gpu_result_out, curandStateMtgp32_
         if(moveCount > 0)
         {   
             // Select random move
-            Game::move_t selectedMove = moveList[curand(&curandStateLocal) % moveCount];
+            Game::move_t selectedMove = moveList[curand(&curandStateShared[curandStateIdx]) % moveCount];
 
             // Execute random move
             Game::moveresult_t moveResult = currentBoardState.executeMove(selectedMove, currentPlayerTurn);
 
             // Check Move
-            // TODO: Add move result checking
+            // TODO: Add check to make sure move is not invalid
             if (moveResult == Game::MOVE_SUCCESS) {
                 if (currentPlayerTurn == Player::PLAYER_NUMBER_2) {
                     currentPlayerTurn = Player::PLAYER_NUMBER_1;
@@ -81,7 +86,6 @@ __global__ void simulationKernel(gpu_count_t* gpu_result_out, curandStateMtgp32_
                 }
             }
         }
-        __syncthreads();
         
         // Check if game has ended
         currentBoardResult = currentBoardState.getBoardResult(currentPlayerTurn);
@@ -92,11 +96,11 @@ __global__ void simulationKernel(gpu_count_t* gpu_result_out, curandStateMtgp32_
                 currentBoardResult == Game::GAME_OVER_PLAYER2_WIN)
             {
                 // If winner, count player win
-                atomicInc(&resultCount[currentBoardResult - 1], 1);
+                atomicAdd(&resultCount[currentBoardResult - 1], 1);
             }
 
             // Count playout
-            atomicInc(&resultCount[2], 1);
+            atomicAdd(&resultCount[2], 1);
 
             // Reset search board states
             currentPlayerTurn = initPlayerTurn;
@@ -104,6 +108,7 @@ __global__ void simulationKernel(gpu_count_t* gpu_result_out, curandStateMtgp32_
         }
 
         // Sync threads before next stage
+        // Prevents reading and writing at same time
         __syncthreads();
     }
 
@@ -113,18 +118,24 @@ __global__ void simulationKernel(gpu_count_t* gpu_result_out, curandStateMtgp32_
     __syncthreads();
     
     // Save rng state
-    curandState[threadIdx.x] = curandStateLocal;
+    if(threadIdx.x == curandStateIdx)
+        curandState[curandStateIdx] = curandStateShared[curandStateIdx];
+    __syncthreads();
 }
 
 namespace Player {
 
+// Constructor for MonteCarloHybridPlayer
 MonteCarloHybridPlayer::MonteCarloHybridPlayer()
 {
     // Allocate space for prng states on device
-    CUDA_CALL(cudaMalloc((void**)&devMTGPStates, BLOCK_SIZE * sizeof(curandStateMtgp32)));
+    CUDA_CALL(cudaMalloc(&devMTGPStates, CURAND_SIZE * sizeof(curandStateMtgp32)));
 
     /* Allocate space for MTGP kernel parameters */
-    CUDA_CALL(cudaMalloc((void**)&devKernelParams, sizeof(mtgp32_kernel_params)));
+    CUDA_CALL(cudaMalloc(&devKernelParams, sizeof(mtgp32_kernel_params)));
+
+    // Create memory for GPU result out
+    CUDA_CALL(cudaMalloc(&gpu_result_dev, sizeof(gpu_result)));
 
     /* Reformat from predefined parameter sets to kernel format, */
     /* and copy kernel parameters to device memory               */
@@ -132,19 +143,24 @@ MonteCarloHybridPlayer::MonteCarloHybridPlayer()
 
     /* Initialize one state per thread block */
     CURAND_CALL(curandMakeMTGP32KernelState(devMTGPStates, mtgp32dc_params_fast_11213, devKernelParams, 
-                                BLOCK_SIZE, static_cast<unsigned long long>(time(NULL))));
+                                CURAND_SIZE, time(NULL)));
 }
 
+
+// Destructor for MonteCarloHybridPlayer
 MonteCarloHybridPlayer::~MonteCarloHybridPlayer()
 {
     cudaFree(devKernelParams);
     cudaFree(devMTGPStates);
+    cudaFree(gpu_result_dev);
 }
-
 
 // Run the algorithm for specified number of iterations
 void MonteCarloHybridPlayer::runSearch() {
-    for(int i = 0; i < ITERATION_COUNT; ++i) {
+
+    cudaSearchInit();
+
+    for(size_t i = 0; i < ITERATION_COUNT; ++i) {
         selection();
         expansion();
         simulation();
@@ -152,26 +168,20 @@ void MonteCarloHybridPlayer::runSearch() {
     }
 }
 
-// run a single simulation from the selected node
-void MonteCarloHybridPlayer::simulationGPU() {
-
-    // Debug
-    printf("USING CORRECT SIMULATION\n");
-    exit(0);
-
+void MonteCarloHybridPlayer::cudaSearchInit()
+{
+    // Get current board, turn, and result
     Game::GameBoard gameBoard = m_selectedNode->boardState;
     playernum_t playerTurn = m_selectedNode->playerNum;
-
-    Game::boardresult_t result = gameBoard.getBoardResult(playerTurn);
-
-    // 
-    gpu_count_t* gpu_result_dev;
-    cudaMalloc(&gpu_result_dev, sizeof(gpu_result));
 
     // Copy information to constant memory
     cudaMemcpyToSymbol(initPlayerTurn, &playerTurn, sizeof(playernum_t));
     cudaMemcpyToSymbol(initalGameBoard, &gameBoard, sizeof(Game::GameBoard));
+}
 
+// run a single simulation from the selected node
+void MonteCarloHybridPlayer::simulation()
+{
     // Launch kernel
     simulationKernel<<<1, BLOCK_SIZE>>>(gpu_result_dev, devMTGPStates);
 
@@ -181,7 +191,7 @@ void MonteCarloHybridPlayer::simulationGPU() {
 
     // Calculate average player wins
     double playerWinCount = static_cast<double>(gpu_result_host.winCount[m_rootNode->playerNum]);
-    double totalWinCount = static_cast<double>(gpu_result_host.winCount[3]);
+    double totalWinCount = static_cast<double>(gpu_result_host.playCount);
     double avgWins = playerWinCount / totalWinCount;
 
     // Save wins to node
@@ -207,5 +217,3 @@ void MonteCarloHybridPlayer::backpropagation() {
 }
 
 }
-
-

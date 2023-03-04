@@ -12,8 +12,6 @@
 
 #define NUM_END_STATES_DESIRED 25
 #define NUM_THREADS 4
-#define EXPLORATION_PARAM 1
-#define ITERATION_COUNT 500
 
 namespace Player {
 

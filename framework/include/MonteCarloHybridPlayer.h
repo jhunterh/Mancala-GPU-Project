@@ -7,6 +7,8 @@
 #include "MonteCarloTypes.h"
 #include <curand_kernel.h>
 
+typedef unsigned int gpu_count_t;
+
 namespace Player {
 
 // Definition of Monte Carlo Player
@@ -25,8 +27,11 @@ protected:
     void backpropagation() override;
 
 private:
+    void cudaSearchInit();
+
     curandStateMtgp32* devMTGPStates;
     mtgp32_kernel_params* devKernelParams;
+    gpu_count_t* gpu_result_dev;
 };
 
 }
