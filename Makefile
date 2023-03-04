@@ -20,12 +20,13 @@ GAME_INCLUDE = -Igames/$(game)/include
 SIMULATION_INCLUDES = -Isimulation/include -Ibuild/include
 
 ## Files
-FRAMEWORK_FILES = PlayerManager RandomPlayer MonteCarloPlayer
+FRAMEWORK_FILES = PlayerManager RandomPlayer MonteCarloPlayer MonteCarloPlayerMT
 FRAMEWORK_CUDA_FILES = MonteCarloHybridPlayer
 GAME_FILES = GameBoard
 SIMULATION_FILES = main
 
 ## Links
+LINKS = -lpthread
 CUDA_LINKS = -L/opt/asn/apps/cuda_11.7.0/lib64 -lcudart
 
 ## Libs
@@ -34,7 +35,7 @@ GAME_LIB = $(LIB_DIR)/lib$(game).a
 ## Targets
 # Builds simulation executable
 simulation: $(GAME_LIB)
-	@$(CPP) $(CFLAGS) $(SIMULATION_INCLUDES) $(CUDA_LINKS) simulation/src/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@
+	@$(CPP) $(CFLAGS) $(SIMULATION_INCLUDES) $(CUDA_LINKS) $(LINKS) simulation/src/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@ 
 
 # Builds game library
 lib: $(GAME_LIB)
