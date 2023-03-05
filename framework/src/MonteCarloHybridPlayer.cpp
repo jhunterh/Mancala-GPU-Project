@@ -8,9 +8,6 @@
 #include <curand_mtgp32_host.h>
 #include <curand_mtgp32dc_p_11213.h>
 
-#define EXPLORATION_PARAM 1
-#define ITERATION_COUNT 500
-#define PLAYCOUNT_THRESHOLD 10000
 #define BLOCK_SIZE 1024
 #define MAX_THREADS_PER_CURAND 256
 
@@ -59,7 +56,7 @@ __global__ void simulationKernel(gpu_count_t* gpu_result_out, curandStateMtgp32_
     Game::boardresult_t currentBoardResult = Game::GAME_ACTIVE;
 
     // Do simulations until threshold reached
-    while(resultCount[2] < PLAYCOUNT_THRESHOLD)
+    while(resultCount[2] < PLAYCOUNT_THRESHOLD_HYBRID)
     {
         // Pick random move and execute
 
@@ -160,7 +157,7 @@ void MonteCarloHybridPlayer::runSearch() {
 
     cudaSearchInit();
 
-    for(size_t i = 0; i < ITERATION_COUNT; ++i) {
+    for(size_t i = 0; i < ITERATION_COUNT_HYBRID; ++i) {
         selection();
         expansion();
         simulation();
@@ -208,11 +205,11 @@ void MonteCarloHybridPlayer::backpropagation() {
     // for numWins to be greater than 1, but that breaks the tree's win/loss ratios
     // so I handle that case with the conditional below
     double backPropValue = (m_selectedNode->numWins > 1) ? 1 : m_selectedNode->numWins;
-    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM);
+    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM_HYBRID);
     while(m_selectedNode->parentNode != nullptr) {
         m_selectedNode = m_selectedNode->parentNode;
         m_selectedNode->numWins += backPropValue;
-        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM);
+        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM_HYBRID);
     }
 }
 

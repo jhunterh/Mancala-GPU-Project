@@ -6,6 +6,10 @@
 #include "Player.h"
 #include "MonteCarloTypes.h"
 
+#define EXPLORATION_PARAM 2
+#define ITERATION_COUNT 1000
+#define PLAYCOUNT_THRESHOLD_HYBRID 10000
+
 namespace Player {
 
 // Definition of Monte Carlo Player

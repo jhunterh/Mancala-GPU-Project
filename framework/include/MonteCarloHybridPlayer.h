@@ -7,6 +7,9 @@
 #include "MonteCarloTypes.h"
 #include <curand_kernel.h>
 
+#define EXPLORATION_PARAM_HYBRID 1
+#define ITERATION_COUNT_HYBRID 500
+
 typedef unsigned int gpu_count_t;
 
 namespace Player {
