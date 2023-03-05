@@ -10,8 +10,10 @@
 
 #include "MonteCarloPlayer.h"
 
-#define NUM_END_STATES_DESIRED 25
-#define NUM_THREADS 4
+#define NUM_END_STATES_DESIRED 16
+#define MAX_NUM_THREADS 4
+#define EXPLORATION_PARAM_MT 1
+#define ITERATION_COUNT_MT 250
 
 namespace Player {
 
@@ -36,6 +38,7 @@ private:
     std::atomic<unsigned int> m_endStatesFound;
     std::atomic<unsigned int> m_winStatesFound;
     std::atomic<bool> m_simulationDoneFlag;
+    std::atomic<bool> m_gameFinishFlag;
     std::mutex m_simulationMutex;
     std::condition_variable m_simulationCondition;
 };
