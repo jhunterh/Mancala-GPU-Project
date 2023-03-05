@@ -9,8 +9,6 @@
 #include "game.h"
 #include "Player.h"
 
-#define ITERATION_COUNT 1000
-
 namespace MonteCarlo {
 
 struct TreeNode {
@@ -20,7 +18,7 @@ struct TreeNode {
     std::vector<std::shared_ptr<TreeNode>> childNodes;
     double value = 0.0;
     unsigned int numTimesVisited = 0;
-    unsigned int numWins = 0;
+    double numWins = 0;
     bool simulated = false;
 };
 
@@ -76,7 +74,7 @@ static int getMaxNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
 // Calculates the UCT for a given node
 // UCT is Upper Confidence Bound for Trees
 static void calculateValue(std::shared_ptr<TreeNode> node, unsigned int rootVisits, double explorationParam) {
-    double avg = ((double) node->numWins) / node->numTimesVisited;
+    double avg = node->numWins / node->numTimesVisited;
     node->value = avg + explorationParam*sqrt(log(rootVisits) / node->numTimesVisited);
 }
 
