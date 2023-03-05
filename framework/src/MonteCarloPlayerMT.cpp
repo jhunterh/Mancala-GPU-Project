@@ -5,18 +5,31 @@
 namespace Player {
 
 MonteCarloPlayerMT::MonteCarloPlayerMT() {
-    for(unsigned int i = 0; i < NUM_THREADS; ++i) {
-        m_threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this);
+
+    m_gameFinishFlag.store(false);
+
+    unsigned int numThreads = std::thread::hardware_concurrency();
+    numThreads = (numThreads > MAX_NUM_THREADS) ? MAX_NUM_THREADS : numThreads; 
+    if(numThreads > 0) {
+        std::cout << "MonteCarloPlayerMT Creating " << numThreads << " Simulation Threads..." << std::endl;
+        for(unsigned int i = 0; i < numThreads; ++i) {
+            m_threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this);
+        }
+    } else {
+        std::cout << "UNABLE TO DETECT NUMBER OF CORES ON SYSTEM!" << std::endl;
     }
+    
 }
 
 MonteCarloPlayerMT::~MonteCarloPlayerMT() {
-    for(auto& thread : m_threads) thread.~thread();
+    m_gameFinishFlag.store(true);
+    m_simulationCondition.notify_all();
+    for(auto& thread : m_threads) thread.join();
 }
 
 // Run the algorithm for specified number of iterations
 void MonteCarloPlayerMT::runSearch() {
-    for(int i = 0; i < ITERATION_COUNT; ++i) {
+    for(int i = 0; i < ITERATION_COUNT_MT; ++i) {
         selection();
         expansion();
         simulation();
@@ -48,11 +61,11 @@ void MonteCarloPlayerMT::backpropagation() {
     // for numWins to be greater than 1, but that breaks the tree's win/loss ratios
     // so I handle that case with the conditional below
     double backPropValue = (m_selectedNode->numWins > 1) ? 1 : m_selectedNode->numWins;
-    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM);
+    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM_MT);
     while(m_selectedNode->parentNode != nullptr) {
         m_selectedNode = m_selectedNode->parentNode;
         m_selectedNode->numWins += backPropValue;
-        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM);
+        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM_MT);
     }
 }
 
@@ -61,6 +74,10 @@ void MonteCarloPlayerMT::simulationThread() {
     while(1) {
 
         m_simulationCondition.wait(lck);
+
+        if(m_gameFinishFlag.load()) {
+            return;
+        }
         
         while(m_endStatesFound++ < NUM_END_STATES_DESIRED) {
     
