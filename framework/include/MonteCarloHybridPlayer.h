@@ -5,12 +5,9 @@
 
 #include "MonteCarloPlayer.h"
 #include "MonteCarloTypes.h"
-#include <curand_kernel.h>
 
 #define EXPLORATION_PARAM_HYBRID 1
-#define ITERATION_COUNT_HYBRID 500
-
-typedef unsigned int gpu_count_t;
+#define ITERATION_COUNT_HYBRID 250
 
 namespace Player {
 
@@ -19,7 +16,7 @@ namespace Player {
 class MonteCarloHybridPlayer : public MonteCarloPlayer {
 public:
     MonteCarloHybridPlayer();
-    ~MonteCarloHybridPlayer();
+    ~MonteCarloHybridPlayer() = default;
 
     player_t getPlayerType() override { return 3; }
 	std::string getDescription() override { return "Monte Carlo Hybrid Player"; }
@@ -28,13 +25,6 @@ protected:
     void runSearch() override;
     void simulation() override;
     void backpropagation() override;
-
-private:
-    void cudaSearchInit();
-
-    curandStateMtgp32* devMTGPStates;
-    mtgp32_kernel_params* devKernelParams;
-    gpu_count_t* gpu_result_dev;
 };
 
 }
