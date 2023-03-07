@@ -1,8 +1,8 @@
 #include "PlayerManager.h"
 #include "RandomPlayer.h"
 #include "MonteCarloPlayer.h"
-#include "MonteCarloHybridPlayer.h"
 #include "MonteCarloPlayerMT.h"
+#include "MonteCarloHybridPlayer.h"
 
 namespace Player
 {
