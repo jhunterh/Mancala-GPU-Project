@@ -1,8 +1,13 @@
 #include "MonteCarloPlayer.h"
 #include "GameTypes.h"
-#include "RandomPlayer.h"
 
 namespace Player {
+
+// default constructor
+MonteCarloPlayer::MonteCarloPlayer()
+{
+    m_randomPlayer = std::shared_ptr<RandomPlayer>(new RandomPlayer());
+}
 
 // Select a move from the given boardstate
 Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t playerNum)
@@ -86,37 +91,40 @@ void MonteCarloPlayer::expansion() {
     
 }
 
-// run a single simulation from the selected node
+// run single-threaded simulations from the selected node
 void MonteCarloPlayer::simulation() {
-    // Declare two random players to duke it out
-    RandomPlayer player;
+    int numWins = 0;
 
-    Game::GameBoard gameBoard = m_selectedNode->boardState;
-    playernum_t playerTurn = m_selectedNode->playerNum;
+    for(int i = 0; i < m_numSimulations; ++i) {
+        Game::GameBoard gameBoard = m_selectedNode->boardState;
+        playernum_t playerTurn = m_selectedNode->playerNum;
 
-    Game::boardresult_t result = gameBoard.getBoardResult(playerTurn);
+        Game::boardresult_t result = gameBoard.getBoardResult(playerTurn);
 
-    while(result == Game::GAME_ACTIVE) {
+        while(result == Game::GAME_ACTIVE) {
 
-        Game::move_t selectedMove = player.selectMove(gameBoard, playerTurn);
-        Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
+            Game::move_t selectedMove = m_randomPlayer->selectMove(gameBoard, playerTurn);
+            Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
 
-        if (moveResult == Game::MOVE_SUCCESS) {
-            if (playerTurn == PLAYER_NUMBER_2) {
-                playerTurn = PLAYER_NUMBER_1;
-            } else {
-                playerTurn = PLAYER_NUMBER_2;
+            if (moveResult == Game::MOVE_SUCCESS) {
+                if (playerTurn == PLAYER_NUMBER_2) {
+                    playerTurn = PLAYER_NUMBER_1;
+                } else {
+                    playerTurn = PLAYER_NUMBER_2;
+                }
+            } else if (moveResult == Game::MOVE_INVALID) {
+                std::cout << "Invalid Move" << std::endl;
             }
-        } else if (moveResult == Game::MOVE_INVALID) {
-            std::cout << "Invalid Move" << std::endl;
+            
+            result = gameBoard.getBoardResult(playerTurn);
         }
         
-        result = gameBoard.getBoardResult(playerTurn);
+        if(GameUtils::getPlayerFromBoardResult(result) == m_rootNode->playerNum) {
+            ++numWins;
+        }
     }
-    
-    if(GameUtils::getPlayerFromBoardResult(result) == m_rootNode->playerNum) {
-        ++m_selectedNode->numWins;
-    }
+
+    m_selectedNode->numWins += ((double) numWins) / m_numSimulations;
 
     m_selectedNode->simulated = true;
 }

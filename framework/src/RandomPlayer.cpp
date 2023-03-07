@@ -34,4 +34,10 @@ Game::move_t RandomPlayer::selectMove(Game::GameBoard& board, playernum_t player
     return Game::move_t();
 }
 
+// set the random number generator seed
+void RandomPlayer::setSeed(int seed)
+{
+    srand(seed);
+}
+
 }

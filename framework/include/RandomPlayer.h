@@ -17,6 +17,7 @@ public:
     player_t getPlayerType() override { return 0; }
 	std::string getDescription() override { return "Random Player"; }
 	Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum);
+    void setSeed(int seed);
 
 };
 

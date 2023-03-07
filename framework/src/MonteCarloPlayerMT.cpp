@@ -80,9 +80,6 @@ void MonteCarloPlayerMT::simulationThread() {
         }
         
         while(m_endStatesFound++ < NUM_END_STATES_DESIRED) {
-    
-            // Declare two random players to duke it out
-            RandomPlayer player;
 
             Game::GameBoard gameBoard = m_selectedNode->boardState;
             playernum_t playerTurn = m_selectedNode->playerNum;
@@ -91,7 +88,7 @@ void MonteCarloPlayerMT::simulationThread() {
 
             while(result == Game::GAME_ACTIVE) {
 
-                Game::move_t selectedMove = player.selectMove(gameBoard, playerTurn);
+                Game::move_t selectedMove = m_randomPlayer->selectMove(gameBoard, playerTurn);
                 Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
 
                 if (moveResult == Game::MOVE_SUCCESS) {
