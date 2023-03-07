@@ -3,8 +3,8 @@
 ## Compiler
 CPP = g++
 NVCC = nvcc
-CFLAGS = -std=c++11 #-O3
-CUDA_ARCH = -arch=sm_60
+CFLAGS = -std=c++11 -O3
+CUDA_ARCH = -arch=sm_80
 
 ifeq ($(mode), debug)
 	CFLAGS += -g
@@ -16,22 +16,22 @@ ARTIFACTS_DIR = build/artifacts
 BIN_DIR = build/bin
 INCLUDE_DIR = build/include
 LIB_DIR = build/lib
+CUDAPATH = /opt/asn/apps/cuda_11.7.0
 
 ## Includes
-FRAMEWORK_INCLUDE = -Iframework/include
-CUDA_INCLUDES = 
+FRAMEWORK_INCLUDE = -Iframework/include -I$(CUDAPATH)/samples/common/inc
 GAME_INCLUDE = -Igames/$(game)/include
 SIMULATION_INCLUDES = -Isimulation/include -Ibuild/include
 
 ## Files
-FRAMEWORK_FILES = PlayerManager RandomPlayer MonteCarloPlayer MonteCarloPlayerMT
-FRAMEWORK_CUDA_FILES = MonteCarloHybridPlayer
+FRAMEWORK_FILES = PlayerManager RandomPlayer MonteCarloPlayer MonteCarloPlayerMT MonteCarloHybridPlayer
+FRAMEWORK_CUDA_FILES = MonteCarloUtility
 GAME_FILES = GameBoard
 SIMULATION_FILES = main
 
 ## Links
 LINKS = -lpthread
-CUDA_LINKS = -L/opt/asn/apps/cuda_11.7.0/lib64 -lcudart
+CUDA_LINKS = -L$(CUDAPATH)/lib64 -lcudart
 
 ## Libs
 GAME_LIB = $(LIB_DIR)/lib$(game).a
@@ -39,12 +39,11 @@ GAME_LIB = $(LIB_DIR)/lib$(game).a
 ## Targets
 # Builds simulation executable
 simulation: $(GAME_LIB)
-	@$(CPP) $(CFLAGS) $(SIMULATION_INCLUDES) $(CUDA_LINKS) $(LINKS) simulation/src/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@ 
+	@$(NVCC) $(CFLAGS) $(SIMULATION_INCLUDES) $(CUDA_LINKS) $(LINKS) simulation/src/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@ 
 
 # Builds game library
 lib: $(GAME_LIB)
 $(GAME_LIB): setup $(FRAMEWORK_FILES) $(FRAMEWORK_CUDA_FILES) $(GAME_FILES)
-	@$(NVCC) $(CUDA_ARCH) $(CFLAGS) -dlink $(ARTIFACTS_DIR)/*.o $(FRAMEWORK_INCLUDE) $(GAME_INCLUDE) $(CUDA_LINKS) -o $(ARTIFACTS_DIR)/cudalink.o
 	@ar rcs $(GAME_LIB) $(ARTIFACTS_DIR)/*.o
 	@cp framework/include/* $(INCLUDE_DIR)/
 	@cp games/$(game)/include/* $(INCLUDE_DIR)/
@@ -56,7 +55,7 @@ $(FRAMEWORK_FILES):
 
 # Builds cuda objects associated with framework
 $(FRAMEWORK_CUDA_FILES):
-	@$(NVCC) $(CUDA_ARCH) $(CFLAGS) -x cu -dc -o $(ARTIFACTS_DIR)/$@.o $(FRAMEWORK_INCLUDE) $(GAME_INCLUDE) $(CUDA_LINKS) framework/src/$@.cpp
+	@$(NVCC) $(CUDA_ARCH) $(CFLAGS) -x cu -dc -o $(ARTIFACTS_DIR)/$@.o $(FRAMEWORK_INCLUDE) $(GAME_INCLUDE) $(CUDA_LINKS) framework/src/$@.cu
 
 # Builds objects associated with the game definition
 $(GAME_FILES):
@@ -77,7 +76,7 @@ clean:
 # Launches run script
 run: build/bin/simulation
 	@rm -f *.nsys-rep *.i* *.o* core.*
-	@echo -ne "gpu\n1\n\n1gb\n1\nampere\ngame_simulation\n" | \
+	@echo -ne "gpu\n4\n\n1gb\n1\nampere\ngame_simulation\n" | \
 		run_gpu .runSimulation.sh > /dev/null
 	@sleep 5
 	@tail -f *.o*
