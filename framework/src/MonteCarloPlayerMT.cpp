@@ -8,6 +8,8 @@ MonteCarloPlayerMT::MonteCarloPlayerMT() {
 
     m_gameFinishFlag.store(false);
 
+    m_waitingThreads.store(0);
+
     unsigned int numThreads = std::thread::hardware_concurrency();
     numThreads = (numThreads > MAX_NUM_THREADS) ? MAX_NUM_THREADS : numThreads; 
     if(numThreads > 0) {
@@ -23,6 +25,7 @@ MonteCarloPlayerMT::MonteCarloPlayerMT() {
 
 MonteCarloPlayerMT::~MonteCarloPlayerMT() {
     m_gameFinishFlag.store(true);
+    while(m_waitingThreads.load() < 4);
     m_simulationCondition.notify_all();
     for(auto& thread : m_threads) thread.join();
 }
@@ -43,6 +46,7 @@ void MonteCarloPlayerMT::simulation() {
     m_endStatesFound.store(0);
     m_winStatesFound.store(0);
     m_simulationDoneFlag.store(false);
+    while(m_waitingThreads.load() < 4);
     m_simulationCondition.notify_all();
 
     while(!m_simulationDoneFlag);
@@ -73,7 +77,9 @@ void MonteCarloPlayerMT::simulationThread() {
     std::unique_lock<std::mutex> lck(m_simulationMutex);
     while(1) {
 
+        ++m_waitingThreads;
         m_simulationCondition.wait(lck);
+        --m_waitingThreads;
 
         if(m_gameFinishFlag.load()) {
             return;

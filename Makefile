@@ -1,4 +1,4 @@
-.PHONY: setup clean
+.PHONY: setup clean main
 
 ## Compiler
 CPP = g++
@@ -26,9 +26,15 @@ SIMULATION_FILES = main
 GAME_LIB = $(LIB_DIR)/lib$(game).a
 
 ## Targets
+main: simulation test
+
 # Builds simulation executable
 simulation: $(GAME_LIB)
 	@$(CPP) $(CFLAGS) $(SIMULATION_INCLUDES) simulation/src/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@ -lpthread
+
+# Builds unit test executable
+test: $(GAME_LIB)
+	@$(CPP) $(CFLAGS) $(SIMULATION_INCLUDES) framework/test/mcts/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@ -lpthread
 
 # Builds game library
 lib: $(GAME_LIB)

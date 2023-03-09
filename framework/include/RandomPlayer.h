@@ -17,7 +17,20 @@ public:
     player_t getPlayerType() override { return 0; }
 	std::string getDescription() override { return "Random Player"; }
 	Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum);
-    void setSeed(int seed);
+
+    // unit testing interface
+    void setDeterministic(bool isPreDetermined, int value)
+    {
+        m_isPreDetermined = isPreDetermined;
+        if(m_isPreDetermined)
+        {
+            m_preDeterminedValue = value;
+        }
+    }
+
+private:
+    bool m_isPreDetermined = false;
+    int m_preDeterminedValue = 0;
 
 };
 

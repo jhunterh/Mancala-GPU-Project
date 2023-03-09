@@ -6,7 +6,7 @@
 #include "RandomPlayer.h"
 #include "MonteCarloTypes.h"
 
-#define EXPLORATION_PARAM 2
+#define EXPLORATION_PARAM 1
 #define ITERATION_COUNT 1000
 
 namespace Player {
@@ -23,14 +23,19 @@ public:
 	Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum);
 
     // unit testing interface
+    virtual void selection();
+    virtual void simulation();
+    virtual void expansion();
+    virtual void backpropagation();
+
     void setNumSimulations(int num)
     {
         m_numSimulations = num;
     }
 
-    void setSimulationSeed(int seed)
+    void setDeterministic(bool isPreDetermined, int value)
     {
-        m_randomPlayer->setSeed(seed);
+        m_randomPlayer->setDeterministic(isPreDetermined, value);
     }
 
     void setRootNode(std::shared_ptr<MonteCarlo::TreeNode> node)
@@ -43,15 +48,16 @@ public:
         m_selectedNode = node;
     }
 
+    std::shared_ptr<MonteCarlo::TreeNode> getSelectedNode()
+    {
+        return m_selectedNode;
+    }
+
 protected:
     std::shared_ptr<RandomPlayer> m_randomPlayer;
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::shared_ptr<MonteCarlo::TreeNode> m_selectedNode = nullptr;
     virtual void runSearch();
-    virtual void selection();
-    virtual void simulation();
-    virtual void expansion();
-    virtual void backpropagation();
 
 private:
     int m_numSimulations = 1;

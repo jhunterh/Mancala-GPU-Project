@@ -16,6 +16,12 @@ RandomPlayer::RandomPlayer()
 // Select a move from the given boardstate
 Game::move_t RandomPlayer::selectMove(Game::GameBoard& board, playernum_t playerNum)
 {
+    // early return condition
+    if(m_isPreDetermined) 
+    {
+        return m_preDeterminedValue;
+    }
+
     // Get list of possible moves
     Game::movelist_t moveList;
     Game::movecount_t count = board.getMoves(moveList, playerNum);
@@ -32,12 +38,6 @@ Game::move_t RandomPlayer::selectMove(Game::GameBoard& board, playernum_t player
 
     // Return empty move
     return Game::move_t();
-}
-
-// set the random number generator seed
-void RandomPlayer::setSeed(int seed)
-{
-    srand(seed);
 }
 
 }

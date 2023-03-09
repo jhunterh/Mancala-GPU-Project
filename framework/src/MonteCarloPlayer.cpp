@@ -88,7 +88,7 @@ void MonteCarloPlayer::expansion() {
         m_selectedNode = m_selectedNode->childNodes[0];
         ++m_selectedNode->numTimesVisited;
     }
-    
+
 }
 
 // run single-threaded simulations from the selected node
