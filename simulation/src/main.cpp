@@ -38,6 +38,7 @@ int main(int argc, char **argv)
 
     int p1wins = 0;
     int p2wins = 0;
+    int ties = 0;
 
     for(int i = 0; i < numRounds; ++i) {
         // Init game board
@@ -99,6 +100,7 @@ int main(int argc, char **argv)
                 break;
             case Game::GAME_OVER_TIE:
                 std::cout << "Game ended in a tie!" << std::endl;
+                ++ties;
                 break;
         }
 
@@ -110,6 +112,7 @@ int main(int argc, char **argv)
     std::cout << std::endl << "Number of Rounds Played: " << numRounds << std::endl;
     std::cout << "Player 1 Wins: " << p1wins << std::endl;
     std::cout << "Player 2 Wins: " << p2wins << std::endl;
+    std::cout << "Ties: " << ties << std::endl;
 
     return 0;
 } // end main
