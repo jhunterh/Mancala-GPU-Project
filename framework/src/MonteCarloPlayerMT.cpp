@@ -6,6 +6,8 @@ namespace Player {
 
 MonteCarloPlayerMT::MonteCarloPlayerMT() {
 
+    m_explorationParam = 0;
+
     m_gameFinishFlag.store(false);
 
     m_waitingThreads.store(0);
@@ -55,22 +57,6 @@ void MonteCarloPlayerMT::simulation() {
 
     m_selectedNode->numWins += avgWins;
     m_selectedNode->simulated = true;
-
-}
-
-// propagates simulation results back to the gop of the tree
-void MonteCarloPlayerMT::backpropagation() {
-    // numWins at this point should only be 0 or 1 for m_selectedNode
-    // It is possible if a leaf node is simulated more than once
-    // for numWins to be greater than 1, but that breaks the tree's win/loss ratios
-    // so I handle that case with the conditional below
-    double backPropValue = (m_selectedNode->numWins > 1) ? 1 : m_selectedNode->numWins;
-    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM_MT);
-    while(m_selectedNode->parentNode != nullptr) {
-        m_selectedNode = m_selectedNode->parentNode;
-        m_selectedNode->numWins += backPropValue;
-        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM_MT);
-    }
 }
 
 void MonteCarloPlayerMT::simulationThread() {
@@ -80,7 +66,6 @@ void MonteCarloPlayerMT::simulationThread() {
         ++m_waitingThreads;
         m_simulationCondition.wait(lck);
         --m_waitingThreads;
-
         if(m_gameFinishFlag.load()) {
             return;
         }

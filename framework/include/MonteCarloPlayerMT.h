@@ -29,7 +29,6 @@ public:
 
     // unit testing interface
     void simulation() override;
-    void backpropagation() override;
 
 protected:
     void runSearch() override;

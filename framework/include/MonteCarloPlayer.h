@@ -6,7 +6,6 @@
 #include "RandomPlayer.h"
 #include "MonteCarloTypes.h"
 
-#define EXPLORATION_PARAM 1
 #define ITERATION_COUNT 1000
 
 namespace Player {
@@ -53,10 +52,16 @@ public:
         return m_selectedNode;
     }
 
+    void setExplorationParam(double ep)
+    {
+        m_explorationParam = ep;
+    }
+
 protected:
     std::shared_ptr<RandomPlayer> m_randomPlayer;
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::shared_ptr<MonteCarlo::TreeNode> m_selectedNode = nullptr;
+    double m_explorationParam = 1;
     virtual void runSearch();
 
 private:

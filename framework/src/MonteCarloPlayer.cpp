@@ -136,11 +136,11 @@ void MonteCarloPlayer::backpropagation() {
     // for numWins to be greater than 1, but that breaks the tree's win/loss ratios
     // so I handle that case with the conditional below
     unsigned int backPropValue = (m_selectedNode->numWins > 1) ? 1 : m_selectedNode->numWins;
-    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM);
+    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, m_explorationParam);
     while(m_selectedNode->parentNode != nullptr) {
         m_selectedNode = m_selectedNode->parentNode;
         m_selectedNode->numWins += backPropValue;
-        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM);
+        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, m_explorationParam);
     }
 }
 
