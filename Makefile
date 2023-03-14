@@ -45,7 +45,7 @@ simulation: $(GAME_LIB)
 
 # Builds unit test executable
 test: $(GAME_LIB)
-	@$(CPP) $(CFLAGS) $(SIMULATION_INCLUDES) framework/test/mcts/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@ -lpthread
+	@$(NVCC) $(CFLAGS) $(SIMULATION_INCLUDES) $(CUDA_LINKS) $(LINKS) framework/test/mcts/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@
 
 # Builds game library
 lib: $(GAME_LIB)

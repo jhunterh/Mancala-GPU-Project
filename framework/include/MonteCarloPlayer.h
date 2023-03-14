@@ -32,7 +32,7 @@ public:
         m_numSimulations = num;
     }
 
-    void setDeterministic(bool isPreDetermined, int value)
+    virtual void setDeterministic(bool isPreDetermined, int value)
     {
         m_randomPlayer->setDeterministic(isPreDetermined, value);
     }

@@ -7,6 +7,7 @@
 #include "game.h"
 #include "MonteCarloPlayer.h"
 #include "MonteCarloPlayerMT.h"
+#include "MonteCarloHybridPlayer.h"
 #include "MonteCarloTypes.h"
 #include "GameBoard.h"
 
@@ -37,58 +38,85 @@ void selectionTest()
 {
     std::shared_ptr<MonteCarlo::TreeNode> rootNode = generateSelectionTree();
 
-    Player::MonteCarloPlayer reference;
-    Player::MonteCarloPlayerMT uut;
+    Player::MonteCarloPlayer reference; // single threaded CPU
+    Player::MonteCarloPlayerMT uutMT; // multi-threaded CPU
+    Player::MonteCarloHybridPlayer uutGPU; // GPU
 
     reference.setRootNode(rootNode);
     reference.setSelectedNode(rootNode);
     reference.selection();
 
-    uut.setRootNode(rootNode);
-    uut.setSelectedNode(rootNode);
-    uut.selection();
+    uutMT.setRootNode(rootNode);
+    uutMT.setSelectedNode(rootNode);
+    uutMT.selection();
 
-    if(reference.getSelectedNode() == uut.getSelectedNode())
+    uutGPU.setRootNode(rootNode);
+    uutGPU.setSelectedNode(rootNode);
+    uutGPU.selection();
+
+    std::cout << std::endl;
+
+    if(reference.getSelectedNode() == uutMT.getSelectedNode())
     {
-        std::cout << __PRETTY_FUNCTION__ << " PASSED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " FAILED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
+    }
+
+    if(reference.getSelectedNode() == uutGPU.getSelectedNode())
+    {
+        std::cout << __PRETTY_FUNCTION__ << " GPU PASSED" << std::endl;
+    }
+    else
+    {
+        std::cout << __PRETTY_FUNCTION__ << " GPU FAILED" << std::endl;
     }
 }
 
 void expansionTest()
 {
-    Player::MonteCarloPlayer reference;
-    Player::MonteCarloPlayerMT uut;
+    Player::MonteCarloPlayer reference; // single threaded CPU
+    Player::MonteCarloPlayerMT uutMT; // multi-threaded CPU
+    Player::MonteCarloHybridPlayer uutGPU; // GPU
 
     std::shared_ptr<MonteCarlo::TreeNode> referenceNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
     referenceNode->boardState.initBoard();
     referenceNode->playerNum = Player::PLAYER_NUMBER_1;
     referenceNode->simulated = true;
 
-    std::shared_ptr<MonteCarlo::TreeNode> uutNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
-    uutNode->boardState.initBoard();
-    uutNode->playerNum = Player::PLAYER_NUMBER_1;
-    uutNode->simulated = true;
+    std::shared_ptr<MonteCarlo::TreeNode> uutMTNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    uutMTNode->boardState.initBoard();
+    uutMTNode->playerNum = Player::PLAYER_NUMBER_1;
+    uutMTNode->simulated = true;
+
+    std::shared_ptr<MonteCarlo::TreeNode> uutGPUNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    uutGPUNode->boardState.initBoard();
+    uutGPUNode->playerNum = Player::PLAYER_NUMBER_1;
+    uutGPUNode->simulated = true;
 
     reference.setSelectedNode(referenceNode);
     reference.expansion();
 
-    uut.setSelectedNode(uutNode);
-    uut.expansion();
+    uutMT.setSelectedNode(uutMTNode);
+    uutMT.expansion();
 
-    if(referenceNode->childNodes.size() != uutNode->childNodes.size())
+    uutGPU.setSelectedNode(uutGPUNode);
+    uutGPU.expansion();
+
+    std::cout << std::endl;
+
+    if(referenceNode->childNodes.size() != uutMTNode->childNodes.size())
     {
-        std::cout << __PRETTY_FUNCTION__ << " FAILED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
     }
     else
     {
         bool pass = true;
         for(int i = 0; i < referenceNode->childNodes.size(); ++i)
         {
-            if(!MonteCarlo::nodeCompare(referenceNode->childNodes[i], uutNode->childNodes[i]))
+            if(!MonteCarlo::nodeCompare(referenceNode->childNodes[i], uutMTNode->childNodes[i]))
             {
                 pass = false;
                 break;
@@ -97,19 +125,46 @@ void expansionTest()
 
         if(pass)
         {
-            std::cout << __PRETTY_FUNCTION__ << " PASSED" << std::endl;
+            std::cout << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
         }
         else
         {
-            std::cout << __PRETTY_FUNCTION__ << " FAILED" << std::endl;
+            std::cout << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
+        }
+    }
+
+    if(referenceNode->childNodes.size() != uutGPUNode->childNodes.size())
+    {
+        std::cout << __PRETTY_FUNCTION__ << " GPU FAILED" << std::endl;
+    }
+    else
+    {
+        bool pass = true;
+        for(int i = 0; i < referenceNode->childNodes.size(); ++i)
+        {
+            if(!MonteCarlo::nodeCompare(referenceNode->childNodes[i], uutGPUNode->childNodes[i]))
+            {
+                pass = false;
+                break;
+            }
+        }
+
+        if(pass)
+        {
+            std::cout << __PRETTY_FUNCTION__ << " GPU PASSED" << std::endl;
+        }
+        else
+        {
+            std::cout << __PRETTY_FUNCTION__ << " GPU FAILED" << std::endl;
         }
     }
 }
 
 void simulationTest()
 {
-    Player::MonteCarloPlayer reference;
-    Player::MonteCarloPlayerMT uut;
+    Player::MonteCarloPlayer reference; // single threaded CPU
+    Player::MonteCarloPlayerMT uutMT; // multi-threaded CPU
+    Player::MonteCarloHybridPlayer uutGPU; // GPU
 
     std::shared_ptr<MonteCarlo::TreeNode> referenceNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
     Game::GameBoard gameBoard;
@@ -117,35 +172,53 @@ void simulationTest()
     referenceNode->boardState = gameBoard;
     referenceNode->playerNum = Player::PLAYER_NUMBER_1;
 
-    std::shared_ptr<MonteCarlo::TreeNode> uutNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
-    uutNode->boardState = gameBoard;
-    uutNode->playerNum = Player::PLAYER_NUMBER_1;
+    std::shared_ptr<MonteCarlo::TreeNode> uutMTNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    uutMTNode->boardState = gameBoard;
+    uutMTNode->playerNum = Player::PLAYER_NUMBER_1;
+
+    std::shared_ptr<MonteCarlo::TreeNode> uutGPUNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    uutGPUNode->boardState = gameBoard;
+    uutGPUNode->playerNum = Player::PLAYER_NUMBER_1;
 
     reference.setRootNode(referenceNode);
-    uut.setRootNode(uutNode);
+    uutMT.setRootNode(uutMTNode);
+    uutGPU.setRootNode(uutGPUNode);
 
     reference.setSelectedNode(referenceNode);
-    uut.setSelectedNode(uutNode);
+    uutMT.setSelectedNode(uutMTNode);
+    uutGPU.setSelectedNode(uutGPUNode);
 
     reference.setDeterministic(true, 0);
-    uut.setDeterministic(true, 0);
+    uutMT.setDeterministic(true, 0);
+    uutGPU.setDeterministic(true, 0);
 
     reference.simulation();
-    uut.simulation();
+    uutMT.simulation();
+    uutGPU.simulation();
 
-    if(referenceNode->numWins == uutNode->numWins) 
+    std::cout << std::endl;
+
+    if(referenceNode->numWins == uutMTNode->numWins) 
     {
-        std::cout << __PRETTY_FUNCTION__ << " PASSED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " FAILED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
+    }
+
+    if(referenceNode->numWins == uutGPUNode->numWins) 
+    {
+        std::cout << __PRETTY_FUNCTION__ << " GPU PASSED" << std::endl;
+    }
+    else
+    {
+        std::cout << __PRETTY_FUNCTION__ << " GPU FAILED" << std::endl;
     }
 }
 
 void backpropagationTest()
 {
-    std::cout << "ENTERING BACKPROP" << std::endl;
     std::uniform_real_distribution<double> dist1(0, 1);
     std::uniform_real_distribution<double> dist2(0, 50);
 
@@ -153,11 +226,13 @@ void backpropagationTest()
 
     srand(time(NULL));
 
-    Player::MonteCarloPlayer reference;
-    Player::MonteCarloPlayerMT uut;
+    Player::MonteCarloPlayer reference; // single threaded CPU
+    Player::MonteCarloPlayerMT uutMT; // multi-threaded CPU
+    Player::MonteCarloHybridPlayer uutGPU; // GPU
 
     std::shared_ptr<MonteCarlo::TreeNode> referenceNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
-    std::shared_ptr<MonteCarlo::TreeNode> uutNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    std::shared_ptr<MonteCarlo::TreeNode> uutMTNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    std::shared_ptr<MonteCarlo::TreeNode> uutGPUNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
 
     double numWins = dist2(generator);
     int numTimesVisited = rand() % 101;
@@ -165,11 +240,15 @@ void backpropagationTest()
     referenceNode->numWins = numWins;
     referenceNode->numTimesVisited = numTimesVisited;
 
-    uutNode->numWins = numWins;
-    uutNode->numTimesVisited = numTimesVisited;
+    uutMTNode->numWins = numWins;
+    uutMTNode->numTimesVisited = numTimesVisited;
+
+    uutGPUNode->numWins = numWins;
+    uutGPUNode->numTimesVisited = numTimesVisited;
 
     std::shared_ptr<MonteCarlo::TreeNode> referenceNode2 = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
-    std::shared_ptr<MonteCarlo::TreeNode> uutNode2 = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    std::shared_ptr<MonteCarlo::TreeNode> uutMTNode2 = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    std::shared_ptr<MonteCarlo::TreeNode> uutGPUNode2 = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
 
     numWins = dist1(generator);
     numTimesVisited = 1;
@@ -177,39 +256,57 @@ void backpropagationTest()
     referenceNode2->numWins = numWins;
     referenceNode2->numTimesVisited = numTimesVisited;
 
-    uutNode2->numWins = numWins;
-    uutNode2->numTimesVisited = numTimesVisited;
+    uutMTNode2->numWins = numWins;
+    uutMTNode2->numTimesVisited = numTimesVisited;
+
+    uutGPUNode2->numWins = numWins;
+    uutGPUNode2->numTimesVisited = numTimesVisited;
 
     referenceNode2->parentNode = referenceNode;
-    uutNode2->parentNode = uutNode;
+    uutMTNode2->parentNode = uutMTNode;
+    uutGPUNode2->parentNode = uutGPUNode;
 
     reference.setRootNode(referenceNode);
     reference.setSelectedNode(referenceNode2);
     reference.setExplorationParam(1);
 
-    uut.setRootNode(uutNode);
-    uut.setSelectedNode(uutNode2);
-    uut.setExplorationParam(1);
+    uutMT.setRootNode(uutMTNode);
+    uutMT.setSelectedNode(uutMTNode2);
+    uutMT.setExplorationParam(1);
+
+    uutGPU.setRootNode(uutGPUNode);
+    uutGPU.setSelectedNode(uutGPUNode2);
+    uutGPU.setExplorationParam(1);
 
     reference.backpropagation();
-    uut.backpropagation();
+    uutMT.backpropagation();
+    uutGPU.backpropagation();
 
-    double referenceSum = (referenceNode->value * referenceNode->value) + (referenceNode2->value * referenceNode2->value);
-    double uutSum = (uutNode->value * uutNode->value) + (uutNode2->value * uutNode2->value);
+    double relErrMT = (referenceNode->value - uutMTNode->value)*(referenceNode->value - uutMTNode->value) 
+                        + (referenceNode2->value - uutMTNode2->value)*(referenceNode2->value - uutMTNode2->value);
+    double relErrGPU = (referenceNode->value - uutGPUNode->value)*(referenceNode->value - uutGPUNode->value) 
+                        + (referenceNode2->value - uutGPUNode2->value)*(referenceNode2->value - uutGPUNode2->value);
 
-    double relErr = referenceSum - uutSum;
+    std::cout << std::endl;
 
-    std::cout << referenceNode->value << std::endl;
-    std::cout << uutNode->value << std::endl;
-
-    if(relErr < 0.01)
+    if(relErrMT < 0.01)
     {
-        std::cout << __PRETTY_FUNCTION__ << " PASSED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " FAILED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
     }
+
+    if(relErrGPU < 0.01)
+    {
+        std::cout << __PRETTY_FUNCTION__ << " GPU PASSED" << std::endl;
+    }
+    else
+    {
+        std::cout << __PRETTY_FUNCTION__ << " GPU FAILED" << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 int main()

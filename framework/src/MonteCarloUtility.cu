@@ -10,6 +10,7 @@ __device__ __constant__ Player::playernum_t initPlayerTurn;
 __device__ __constant__ Game::GameBoard initalGameBoard;
 __device__ gpu_result gpuResultGlobal;
 __device__ curandState_t curandStatesGlobal[BLOCK_SIZE];
+__device__ deterministic_data deterministicData;
 
 // Kernel to init curand
 __global__ void curandInitKernel(unsigned long long seed)
@@ -50,8 +51,18 @@ __global__ void simulationKernel()
         if(moveCount > 0)
         {   
             // Select random move
-            Game::move_t selectedMove = moveList[curand(&curandStateLocal) % moveCount];
-
+            // NOTE: No need to worry about warp divergence here since
+            //       all threads will take the same path
+            Game::move_t selectedMove;
+            if(deterministicData.isPreDetermined)
+            {
+                selectedMove = moveList[deterministicData.value];
+            }
+            else
+            {
+                selectedMove = moveList[curand(&curandStateLocal) % moveCount];
+            }
+             
             // Execute random move
             Game::moveresult_t moveResult = currentBoardState.executeMove(selectedMove, currentPlayerTurn);
 
@@ -107,11 +118,12 @@ void curandInit()
     checkCudaErrors(cudaGetLastError());
 }
 
-void simulationGPU(gpu_result* gpu_result_out, Game::GameBoard gameBoard, Player::playernum_t playerTurn)
+void simulationGPU(gpu_result* gpu_result_out, Game::GameBoard gameBoard, Player::playernum_t playerTurn, deterministic_data deterministicDataHost)
 {
     // Copy information to constant memory
     checkCudaErrors(cudaMemcpyToSymbol(initalGameBoard, &gameBoard, sizeof(Game::GameBoard)));
     checkCudaErrors(cudaMemcpyToSymbol(initPlayerTurn, &playerTurn, sizeof(Player::playernum_t)));
+    checkCudaErrors(cudaMemcpyToSymbol(deterministicData, &deterministicDataHost, sizeof(deterministic_data)));
 
     // Launch kernel
     simulationKernel<<<1, BLOCK_SIZE>>>();
