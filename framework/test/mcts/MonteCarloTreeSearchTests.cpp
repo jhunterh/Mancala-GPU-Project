@@ -67,11 +67,11 @@ void selectionTest()
 
     if(reference.getSelectedNode() == uutGPU.getSelectedNode())
     {
-        std::cout << __PRETTY_FUNCTION__ << " GPU PASSED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " Hybrid Passed" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " GPU FAILED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " Hybrid Failed" << std::endl;
     }
 }
 
@@ -135,7 +135,7 @@ void expansionTest()
 
     if(referenceNode->childNodes.size() != uutGPUNode->childNodes.size())
     {
-        std::cout << __PRETTY_FUNCTION__ << " GPU FAILED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " Hybrid Failed" << std::endl;
     }
     else
     {
@@ -151,11 +151,11 @@ void expansionTest()
 
         if(pass)
         {
-            std::cout << __PRETTY_FUNCTION__ << " GPU PASSED" << std::endl;
+            std::cout << __PRETTY_FUNCTION__ << " Hybrid Passed" << std::endl;
         }
         else
         {
-            std::cout << __PRETTY_FUNCTION__ << " GPU FAILED" << std::endl;
+            std::cout << __PRETTY_FUNCTION__ << " Hybrid Failed" << std::endl;
         }
     }
 }
@@ -209,11 +209,11 @@ void simulationTest()
 
     if(referenceNode->numWins == uutGPUNode->numWins) 
     {
-        std::cout << __PRETTY_FUNCTION__ << " GPU PASSED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " Hybrid Passed" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " GPU FAILED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " Hybrid Failed" << std::endl;
     }
 }
 
@@ -300,11 +300,11 @@ void backpropagationTest()
 
     if(relErrGPU < 0.01)
     {
-        std::cout << __PRETTY_FUNCTION__ << " GPU PASSED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " Hybrid Passed" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " GPU FAILED" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " Hybrid Failed" << std::endl;
     }
     std::cout << std::endl;
 }
