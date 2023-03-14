@@ -8,13 +8,13 @@ echo -ne "==================\n"
 echo -ne "Starting execution\n"
 echo -ne "==================\n\n"
 
-# nsys profile build/bin/simulation
+# nsys profile build/bin/test
 
 # echo -ne "\n\n"
 
-# ncu -k game_simulation -o profile build/bin/simulation
+# ncu -k game_test -o profile build/bin/test
 
-build/bin/simulation 3 2 100 &> output.txt
+build/bin/test &> test_output.txt
 
 echo -ne "\n==================\n"
 echo -ne "Finished execution\n"

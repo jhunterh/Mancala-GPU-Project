@@ -5,8 +5,8 @@
 
 #include "MonteCarloPlayer.h"
 #include "MonteCarloTypes.h"
+#include "MonteCarloUtility.h"
 
-#define EXPLORATION_PARAM_HYBRID 1
 #define ITERATION_COUNT_HYBRID 250
 
 namespace Player {
@@ -21,10 +21,15 @@ public:
     player_t getPlayerType() override { return 3; }
 	std::string getDescription() override { return "Monte Carlo Hybrid Player"; }
 
+    // unit testing interface
+    void setDeterministic(bool isPreDetermined, int value) override;
+    void simulation() override;
+
 protected:
     void runSearch() override;
-    void simulation() override;
-    void backpropagation() override;
+
+private:
+    deterministic_data m_deterministicData;
 };
 
 }
