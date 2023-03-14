@@ -34,7 +34,8 @@ enum PlayerNumber : playernum_t
 {
     PLAYER_NUMBER_1 = 0,
     PLAYER_NUMBER_2 = 1,
-    N0_PLAYER = 2
+    N0_PLAYER = 2,
+    TOTAL_PLAYERS = 2
 };
 
 }

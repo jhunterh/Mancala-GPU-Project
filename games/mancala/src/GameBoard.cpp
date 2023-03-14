@@ -80,7 +80,7 @@ void GameBoard::initBoard()
 }
 
 // Execute a move on the board for a given player
-moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
+CUDA_CALLABLE_MEMBER moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
 {
     moveresult_t result = 0;
     squarestate_t playerStart = playerNum*P2_START;
@@ -102,13 +102,16 @@ moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
             boardState[pos] += addValue;
         }
         boardpos_t endPos = (pos + 13) % 14;
+        Player::playernum_t playerSide = endPos/P2_START;
 
         // Handle end on empty space
         if(endPos == playerGoal)
         {
             result++;
         }
-        else if(boardState[endPos] == 1)
+
+        // make sure to check if on your side as well
+        else if(boardState[endPos] == 1 && playerSide == playerNum)
         {
             // Capture last piece
             boardState[endPos] = 0;
@@ -128,7 +131,7 @@ moveresult_t GameBoard::executeMove(move_t move, Player::playernum_t playerNum)
 }
 
 // Return the possible move on the board for a given player
-movecount_t GameBoard::getMoves(movelist_t& movesOut, Player::playernum_t playerNum)
+CUDA_CALLABLE_MEMBER movecount_t GameBoard::getMoves(movelist_t& movesOut, Player::playernum_t playerNum)
 {
     // Loop through each move
     movecount_t moveCount = 0;
@@ -146,7 +149,7 @@ movecount_t GameBoard::getMoves(movelist_t& movesOut, Player::playernum_t player
 
 // Return the board result
 // Current player number is needed for some games
-boardresult_t GameBoard::getBoardResult(Player::playernum_t currentPlayerNum)
+CUDA_CALLABLE_MEMBER boardresult_t GameBoard::getBoardResult(Player::playernum_t currentPlayerNum)
 {
     // Set initial board state
     boardresult_t boardResult = GAME_ACTIVE;
