@@ -23,8 +23,20 @@ Game::move_t RandomPlayer::selectMove(Game::GameBoard& board, playernum_t player
     // Prevent floating point exceptions
     if(count > 0)
     {
-        // Get random move index
-        Game::movecount_t randomValue = (rand() % count);
+        Game::movecount_t randomValue;
+
+        // early return condition
+        if(m_isPreDetermined) 
+        {
+            randomValue = m_preDeterminedValue;
+        }
+        else
+        {
+            // Get random move index
+            randomValue = (rand() % count);
+        }
+
+        
 
         // Return random move
         return moveList[randomValue];

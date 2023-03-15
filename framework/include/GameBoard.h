@@ -42,6 +42,10 @@ public:
     // Return the state of the board in string format
     std::string getBoardStateString();
 
+    // Unit Testing Interface
+    // Set the board to a random state
+    void scramble();
+
 private:
 
     // Internal state of the board

@@ -22,6 +22,27 @@ struct TreeNode {
     bool simulated = false;
 };
 
+// compare two nodes
+static bool nodeCompare(std::shared_ptr<TreeNode> nodeA, std::shared_ptr<TreeNode> nodeB) {
+    bool equals = true;
+
+    if(nodeA->boardState.getBoardStateString() != nodeB->boardState.getBoardStateString()) {
+        equals = false;
+    } else if(nodeA->playerNum != nodeB->playerNum) {
+        equals = false;
+    } else if(nodeA->value != nodeB->value) {
+        equals = false;
+    } else if(nodeA->numTimesVisited != nodeB->numTimesVisited) {
+        equals = false;
+    } else if(nodeA->numWins != nodeB->numWins) {
+        equals = false;
+    } else if(nodeA->simulated != nodeB->simulated) {
+        equals = false;
+    }
+
+    return equals;
+}
+
 // is the node a leaf node?
 static bool isLeafNode(std::shared_ptr<TreeNode> node) {
     return (node->childNodes.size() <= 0);

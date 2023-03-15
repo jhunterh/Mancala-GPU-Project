@@ -1,4 +1,4 @@
-.PHONY: setup clean
+.PHONY: setup clean main
 
 ## Compiler
 CPP = g++
@@ -37,9 +37,15 @@ CUDA_LINKS = -L$(CUDAPATH)/lib64 -lcudart
 GAME_LIB = $(LIB_DIR)/lib$(game).a
 
 ## Targets
+main: simulation test
+
 # Builds simulation executable
 simulation: $(GAME_LIB)
 	@$(NVCC) $(CFLAGS) $(SIMULATION_INCLUDES) $(CUDA_LINKS) $(LINKS) simulation/src/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@ 
+
+# Builds unit test executable
+test: $(GAME_LIB)
+	@$(NVCC) $(CFLAGS) $(SIMULATION_INCLUDES) $(CUDA_LINKS) $(LINKS) framework/test/mcts/*.cpp $(GAME_LIB) -o $(BUILD_DIR)/bin/$@
 
 # Builds game library
 lib: $(GAME_LIB)
