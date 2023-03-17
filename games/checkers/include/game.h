@@ -38,6 +38,7 @@ enum SquareStateBit
 
 // Definition for an index of a single space
 typedef int8_t boardpos_t;
+#define BOARD_POS_INVALID -1
 
 // Definition for the board itself
 typedef uint32_t bitboard_t;

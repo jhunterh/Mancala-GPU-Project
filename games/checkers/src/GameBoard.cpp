@@ -28,11 +28,12 @@ CUDA_CALLABLE_MEMBER moveresult_t GameBoard::executeMove(move_t move, Player::pl
 
     // Handle old space
     // TODO: Check if old space is occupied and correct player
+    // TODO: Check if new space is empty
     bitboard_t oldMask = (1 << move.oldPos);
     boardState.isOccupiedBoard &= ~oldMask; // Clear old board state
 
     // Handle new space
-    // TODO: Check if new space is empty
+    // Change to no if statements
     bitboard_t newMask = (1 << move.newPos);
     boardState.isOccupiedBoard |= newMask;
     if(boardState.isBlackBoard & newMask)
@@ -65,12 +66,64 @@ CUDA_CALLABLE_MEMBER movecount_t GameBoard::getMoves(movelist_t& movesOut, Playe
     for(boardpos_t pos = 0; pos < GAME_BOARD_SIZE; pos++)
     {
         bitboard_t mask = (1 << pos);
-        if(boardState.isOccupiedBoard & mask)
+        bool playerPiece = (boardState.isOccupiedBoard & mask) && 
+                            (((bool)(boardState.isBlackBoard & mask)) == ((bool) playerNum));
+        if(playerPiece)
         {
+            // Piece is player's piece
+            // Find all moves and jumps
+
+            // TODO: Cornerlist alternative?
+            // TODO: Handle not being king
+            for(uint8_t cornerIdx = 0; cornerIdx < 4; cornerIdx++)
+            {
+                boardpos_t movePos = cornerList[pos][cornerIdx];
+                if(movePos != BOARD_POS_INVALID)
+                {
+                    // Check if space empty or not
+                    bitboard_t moveMask = (1 << movePos);
+                    if(boardState.isOccupiedBoard & mask)
+                    {
+                        // Space is not empty, look for jump
+
+                        // First make sure piece is opposite color
+                        bool isJumpPieceOpposing = ((bool)(boardState.isBlackBoard & moveMask))
+                                                     != ((bool) playerNum);
+
+                        // Make sure jumping space is free
+                        boardpos_t jumpPos = cornerList[movePos][cornerIdx];
+                        bitboard_t jumpMask = (1 << jumpPos);
+                        bool isJumpSpaceFree = (jumpPos != BOARD_POS_INVALID) && 
+                                                !(boardState.isOccupiedBoard & jumpMask);
+
+                        // If valid, add jump
+                        if(isJumpPieceOpposing && isJumpSpaceFree)
+                        {
+                            jumpList[jumpCount++] = move_t {
+                                .oldPos = pos,
+                                .newPos = movePos,
+                                .jumpPos = jumpPos
+                            };
+                        }
+                    }
+                    else
+                    {
+                        // Space is empty, add move
+                        moveList[moveCount++] = move_t {
+                            .oldPos = pos,
+                            .newPos = movePos,
+                            .jumpPos = BOARD_POS_INVALID
+                        };
+                    }
+                }
+            }
             
         }
     }
-    return moveCount;
+
+    // Return jumps list if jump exists
+    movesOut = jumpCount ? jumpList : moveList;
+    return jumpCount ? jumpCount : moveCount;
 }
 
 // Return the board result
