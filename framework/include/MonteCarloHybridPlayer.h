@@ -7,8 +7,6 @@
 #include "MonteCarloTypes.h"
 #include "MonteCarloUtility.h"
 
-#define ITERATION_COUNT_HYBRID 250
-
 namespace Player {
 
 // Definition of Monte Carlo Player
@@ -23,10 +21,7 @@ public:
 
     // unit testing interface
     void setDeterministic(bool isPreDetermined, int value) override;
-    void simulation() override;
-
-protected:
-    void runSearch() override;
+    unsigned int simulation() override;
 
 private:
     deterministic_data m_deterministicData;

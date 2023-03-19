@@ -63,4 +63,17 @@ Game::move_t PlayerManager::getMove(playernum_t playerNum, Game::GameBoard& boar
     return playerList[playerNum]->selectMove(board, playerNum);
 }
 
+// Print Player performance data
+void PlayerManager::printPerformanceData(playernum_t playerNum) 
+{
+    // Check that player number is not out of range
+    if(playerNum > PLAYER_NUMBER_2)
+    {
+        std::cout << "Invalid Player" << std::endl;
+    }
+
+    // Print data
+    playerList[playerNum]->printPerformanceData();
+}
+
 }

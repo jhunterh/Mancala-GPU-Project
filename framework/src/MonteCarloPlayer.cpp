@@ -1,5 +1,6 @@
 #include "MonteCarloPlayer.h"
 #include "GameTypes.h"
+#include "Timer.h"
 
 namespace Player {
 
@@ -30,10 +31,17 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
 
 // Run the algorithm for specified number of iterations
 void MonteCarloPlayer::runSearch() {
-    for(size_t i = 0; i < ITERATION_COUNT; ++i) {
+    Timer timer;
+    for(size_t i = 0; i < m_numIterations; ++i) {
         selection();
         expansion();
-        simulation();
+        timer.start();
+        unsigned int numMovesSimulated = simulation();
+        timer.stop();
+        MonteCarlo::SimulationPerformanceReport simReport;
+        simReport.executionTime = timer.elapsedTime_ms();
+        simReport.numMovesSimulated = numMovesSimulated;
+        m_simulationReports.push_back(simReport);
         backpropagation();
     }
 }
@@ -92,8 +100,10 @@ void MonteCarloPlayer::expansion() {
 }
 
 // run single-threaded simulations from the selected node
-void MonteCarloPlayer::simulation() {
+unsigned int MonteCarloPlayer::simulation() {
     int numWins = 0;
+
+    unsigned int numMovesSimulated = 0;
 
     for(int i = 0; i < m_numSimulations; ++i) {
         Game::GameBoard gameBoard = m_selectedNode->boardState;
@@ -105,6 +115,7 @@ void MonteCarloPlayer::simulation() {
 
             Game::move_t selectedMove = m_randomPlayer->selectMove(gameBoard, playerTurn);
             Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
+            ++numMovesSimulated;
 
             if (moveResult == Game::MOVE_SUCCESS) {
                 if (playerTurn == PLAYER_NUMBER_2) {
@@ -127,6 +138,8 @@ void MonteCarloPlayer::simulation() {
     m_selectedNode->numWins += ((double) numWins) / m_numSimulations;
 
     m_selectedNode->simulated = true;
+
+    return numMovesSimulated;
 }
 
 // propagates simulation results back to the gop of the tree
@@ -142,6 +155,23 @@ void MonteCarloPlayer::backpropagation() {
         m_selectedNode->numWins += backPropValue;
         MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, m_explorationParam);
     }
+}
+
+void MonteCarloPlayer::printPerformanceData() {
+    std::cout << getDescription() << ":" << std::endl;
+    unsigned int numSimulations = 0;
+    double executionTimeAggregate = 0.0f;
+    unsigned int numMovesSimulatedAggregate = 0;
+    for(auto report : m_simulationReports) {
+        ++numSimulations;
+        executionTimeAggregate += report.executionTime;
+        numMovesSimulatedAggregate += report.numMovesSimulated;
+    }
+    double averageExecutionTime = executionTimeAggregate / numSimulations;
+    double movesPerSecond = numMovesSimulatedAggregate / (executionTimeAggregate / 1000);
+
+    std::cout << "\tAverage Execution Time (For Simulation Step) - " << averageExecutionTime << std::endl;
+    std::cout << "\tMoves Simulated Per Second - " << movesPerSecond << std::endl;
 }
 
 }

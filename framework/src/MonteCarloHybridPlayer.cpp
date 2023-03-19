@@ -9,6 +9,8 @@ namespace Player {
 // Constructor for MonteCarloHybridPlayer
 MonteCarloHybridPlayer::MonteCarloHybridPlayer()
 {
+    m_numIterations = 250;
+
     // Init curand values
     curandInit();
     m_explorationParam = 0;
@@ -20,22 +22,10 @@ void MonteCarloHybridPlayer::setDeterministic(bool isPreDetermined, int value)
 {
     m_deterministicData.isPreDetermined = isPreDetermined;
     m_deterministicData.value = value;
-
-
-}
-
-// Run the algorithm for specified number of iterations
-void MonteCarloHybridPlayer::runSearch() {
-    for(size_t i = 0; i < ITERATION_COUNT_HYBRID; ++i) {
-        selection();
-        expansion();
-        simulation();
-        backpropagation();
-    }
 }
 
 // run a single simulation from the selected node
-void MonteCarloHybridPlayer::simulation()
+unsigned int MonteCarloHybridPlayer::simulation()
 {
     // Start simulation
     gpu_result gpuResult;
@@ -58,6 +48,8 @@ void MonteCarloHybridPlayer::simulation()
 
     // Mark node as simulated
     m_selectedNode->simulated = true;
+
+    return gpuResult.numMovesSimulated;
 }
 
 }

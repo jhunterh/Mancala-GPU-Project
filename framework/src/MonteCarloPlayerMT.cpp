@@ -6,6 +6,8 @@ namespace Player {
 
 MonteCarloPlayerMT::MonteCarloPlayerMT() {
 
+    m_numIterations = 250;
+
     m_explorationParam = 0;
 
     m_gameFinishFlag.store(false);
@@ -31,21 +33,12 @@ MonteCarloPlayerMT::~MonteCarloPlayerMT() {
     for(auto& thread : m_threads) thread.join();
 }
 
-// Run the algorithm for specified number of iterations
-void MonteCarloPlayerMT::runSearch() {
-    for(int i = 0; i < ITERATION_COUNT_MT; ++i) {
-        selection();
-        expansion();
-        simulation();
-        backpropagation();
-    }
-}
-
 // run a single simulation from the selected node
-void MonteCarloPlayerMT::simulation() {
+unsigned int MonteCarloPlayerMT::simulation() {
 
     m_endStatesFound.store(0);
     m_winStatesFound.store(0);
+    m_numMovesSimulated.store(0);
     m_simulationDoneFlag.store(false);
     while(m_waitingThreads.load() < 4);
     m_simulationCondition.notify_all();
@@ -56,6 +49,8 @@ void MonteCarloPlayerMT::simulation() {
 
     m_selectedNode->numWins += avgWins;
     m_selectedNode->simulated = true;
+
+    return m_numMovesSimulated.load();
 }
 
 void MonteCarloPlayerMT::simulationThread() {
@@ -76,10 +71,13 @@ void MonteCarloPlayerMT::simulationThread() {
 
             Game::boardresult_t result = gameBoard.getBoardResult(playerTurn);
 
+            unsigned int localNumMovesSimulated = 0;
+
             while(result == Game::GAME_ACTIVE) {
 
                 Game::move_t selectedMove = m_randomPlayer->selectMove(gameBoard, playerTurn);
                 Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
+                ++localNumMovesSimulated;
 
                 if (moveResult == Game::MOVE_SUCCESS) {
                     if (playerTurn == PLAYER_NUMBER_2) {
@@ -93,6 +91,7 @@ void MonteCarloPlayerMT::simulationThread() {
                 
                 result = gameBoard.getBoardResult(playerTurn);
             }
+            m_numMovesSimulated += localNumMovesSimulated;
             
             if(GameUtils::getPlayerFromBoardResult(result) == m_rootNode->playerNum) {
                 ++m_winStatesFound;

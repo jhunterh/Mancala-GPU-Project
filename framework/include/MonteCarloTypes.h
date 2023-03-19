@@ -99,6 +99,12 @@ static void calculateValue(std::shared_ptr<TreeNode> node, unsigned int rootVisi
     node->value = avg + explorationParam*sqrt(log(rootVisits) / node->numTimesVisited);
 }
 
+// Report given at the end of each simulation cycle
+struct SimulationPerformanceReport {
+    unsigned int numMovesSimulated = 0;
+    double executionTime = 0.0;
+};
+
 }
 
 #endif

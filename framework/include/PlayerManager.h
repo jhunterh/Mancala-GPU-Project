@@ -26,6 +26,9 @@ public:
     // Get player-chosen move
     Game::move_t getMove(playernum_t playerNum, Game::GameBoard& board);
 
+    // Print Player performance data
+    void printPerformanceData(playernum_t playerNum);
+
 private:
 
     // Static declaration of types of players

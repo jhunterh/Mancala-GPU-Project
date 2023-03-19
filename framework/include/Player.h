@@ -26,6 +26,8 @@ public:
     // Select a move from the given boardstate
 	virtual Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum) = 0;
 
+    virtual void printPerformanceData() = 0;
+
 protected:
     Player() = default;
 

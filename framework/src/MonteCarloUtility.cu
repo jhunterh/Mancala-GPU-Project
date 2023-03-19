@@ -25,6 +25,9 @@ __global__ void simulationKernel()
     // First two are players, third is total play count
     __shared__ gpu_result gpuResultLocal;
 
+    // number of moves simulated by this thread
+    unsigned int numMovesSimulated = 0;
+
     // Init result to 0
     if(threadIdx.x == 0)
         gpuResultLocal = {};
@@ -65,6 +68,7 @@ __global__ void simulationKernel()
              
             // Execute random move
             Game::moveresult_t moveResult = currentBoardState.executeMove(selectedMove, currentPlayerTurn);
+            ++numMovesSimulated;
 
             // Check Move
             // TODO: Add check to make sure move is not invalid
@@ -104,6 +108,9 @@ __global__ void simulationKernel()
 
     // Save rng state
     curandStatesGlobal[threadIdx.x] = curandStateLocal;
+
+    atomicAdd(&gpuResultLocal.numMovesSimulated, numMovesSimulated);
+    __syncthreads();
 
     // Copy gpu result out
     if(threadIdx.x == 0)

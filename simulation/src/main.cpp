@@ -2,6 +2,7 @@
 #include <string>
 
 #include "PlayerManager.h"
+#include "Timer.h"
 
 // Simulation for any two person board game
 int main(int argc, char **argv)
@@ -113,6 +114,11 @@ int main(int argc, char **argv)
     std::cout << "Player 1 Wins: " << p1wins << std::endl;
     std::cout << "Player 2 Wins: " << p2wins << std::endl;
     std::cout << "Ties: " << ties << std::endl;
+
+    std::cout << std::endl << "Player 1 Performance Data:" << std::endl;
+    playerManager.printPerformanceData(Player::PLAYER_NUMBER_1);
+    std::cout << std::endl << "Player 2 Performance Data:" << std::endl;
+    playerManager.printPerformanceData(Player::PLAYER_NUMBER_2);
 
     return 0;
 } // end main
