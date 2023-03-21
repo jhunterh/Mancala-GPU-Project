@@ -17,7 +17,7 @@ public:
 
     player_t getPlayerType() override { return 0; }
 	std::string getDescription() override { return "Random Player"; }
-    void printPerformanceData() override {std::cout << getDescription() << ": No Performance Data" << std::endl;}
+    std::string getPerformanceDataString() override {return (getDescription()+": No Performance Data\n");}
 	Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum);
 
     // unit testing interface

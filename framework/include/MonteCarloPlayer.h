@@ -20,7 +20,7 @@ public:
 	Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum);
     void setNumIterations(int iterations) {m_numIterations = iterations;}
     std::vector<MonteCarlo::SimulationPerformanceReport> getSimulationReports() {return m_simulationReports;}
-    void printPerformanceData() override;
+    std::string getPerformanceDataString() override;
 
     // unit testing interface
     virtual void selection();

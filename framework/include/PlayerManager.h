@@ -26,8 +26,8 @@ public:
     // Get player-chosen move
     Game::move_t getMove(playernum_t playerNum, Game::GameBoard& board);
 
-    // Print Player performance data
-    void printPerformanceData(playernum_t playerNum);
+    // Get Player performance data string
+    std::string getPerformanceDataString(playernum_t playerNum);
 
 private:
 

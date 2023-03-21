@@ -3,6 +3,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <random>
+#include <sstream>
 
 #include "game.h"
 #include "MonteCarloPlayer.h"
@@ -10,6 +11,7 @@
 #include "MonteCarloHybridPlayer.h"
 #include "MonteCarloTypes.h"
 #include "GameBoard.h"
+#include "Logger.h"
 
 std::shared_ptr<MonteCarlo::TreeNode> generateSelectionTree()
 {
@@ -36,6 +38,8 @@ std::shared_ptr<MonteCarlo::TreeNode> generateSelectionTree()
 
 void selectionTest()
 {
+    Logging::Logger& logger = Logging::Logger::getInstance();
+
     std::shared_ptr<MonteCarlo::TreeNode> rootNode = generateSelectionTree();
 
     Player::MonteCarloPlayer reference; // single threaded CPU
@@ -54,29 +58,35 @@ void selectionTest()
     uutGPU.setSelectedNode(rootNode);
     uutGPU.selection();
 
-    std::cout << std::endl;
+    std::stringstream out("");
+
+    out << std::endl;
 
     if(reference.getSelectedNode() == uutMT.getSelectedNode())
     {
-        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
+        out << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
+        out << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
     }
 
     if(reference.getSelectedNode() == uutGPU.getSelectedNode())
     {
-        std::cout << __PRETTY_FUNCTION__ << " Hybrid Passed" << std::endl;
+        out << __PRETTY_FUNCTION__ << " Hybrid PASSED" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " Hybrid Failed" << std::endl;
+        out << __PRETTY_FUNCTION__ << " Hybrid FAILED" << std::endl;
     }
+
+    logger.log(Logging::TEST_LOG, out.str());
 }
 
 void expansionTest()
 {
+    Logging::Logger& logger = Logging::Logger::getInstance();
+
     Player::MonteCarloPlayer reference; // single threaded CPU
     Player::MonteCarloPlayerMT uutMT; // multi-threaded CPU
     Player::MonteCarloHybridPlayer uutGPU; // GPU
@@ -105,11 +115,13 @@ void expansionTest()
     uutGPU.setSelectedNode(uutGPUNode);
     uutGPU.expansion();
 
-    std::cout << std::endl;
+    std::stringstream out("");
+
+    out << std::endl;
 
     if(referenceNode->childNodes.size() != uutMTNode->childNodes.size())
     {
-        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
+        out << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
     }
     else
     {
@@ -125,17 +137,17 @@ void expansionTest()
 
         if(pass)
         {
-            std::cout << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
+            out << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
         }
         else
         {
-            std::cout << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
+            out << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
         }
     }
 
     if(referenceNode->childNodes.size() != uutGPUNode->childNodes.size())
     {
-        std::cout << __PRETTY_FUNCTION__ << " Hybrid Failed" << std::endl;
+        out << __PRETTY_FUNCTION__ << " Hybrid FAILED" << std::endl;
     }
     else
     {
@@ -151,17 +163,21 @@ void expansionTest()
 
         if(pass)
         {
-            std::cout << __PRETTY_FUNCTION__ << " Hybrid Passed" << std::endl;
+            out << __PRETTY_FUNCTION__ << " Hybrid PASSED" << std::endl;
         }
         else
         {
-            std::cout << __PRETTY_FUNCTION__ << " Hybrid Failed" << std::endl;
+            out << __PRETTY_FUNCTION__ << " Hybrid FAILED" << std::endl;
         }
     }
+
+    logger.log(Logging::TEST_LOG, out.str());
 }
 
 void simulationTest()
 {
+    Logging::Logger& logger = Logging::Logger::getInstance();
+
     Player::MonteCarloPlayer reference; // single threaded CPU
     Player::MonteCarloPlayerMT uutMT; // multi-threaded CPU
     Player::MonteCarloHybridPlayer uutGPU; // GPU
@@ -196,29 +212,35 @@ void simulationTest()
     uutMT.simulation();
     uutGPU.simulation();
 
-    std::cout << std::endl;
+    std::stringstream out("");
+
+    out << std::endl;
 
     if(referenceNode->numWins == uutMTNode->numWins) 
     {
-        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
+        out << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
+        out << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
     }
 
     if(referenceNode->numWins == uutGPUNode->numWins) 
     {
-        std::cout << __PRETTY_FUNCTION__ << " Hybrid Passed" << std::endl;
+        out << __PRETTY_FUNCTION__ << " Hybrid PASSED" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " Hybrid Failed" << std::endl;
+        out << __PRETTY_FUNCTION__ << " Hybrid FAILED" << std::endl;
     }
+
+    logger.log(Logging::TEST_LOG, out.str());
 }
 
 void backpropagationTest()
 {
+    Logging::Logger& logger = Logging::Logger::getInstance();
+
     std::uniform_real_distribution<double> dist1(0, 1);
     std::uniform_real_distribution<double> dist2(0, 50);
 
@@ -287,26 +309,30 @@ void backpropagationTest()
     double relErrGPU = (referenceNode->value - uutGPUNode->value)*(referenceNode->value - uutGPUNode->value) 
                         + (referenceNode2->value - uutGPUNode2->value)*(referenceNode2->value - uutGPUNode2->value);
 
-    std::cout << std::endl;
+    std::stringstream out("");
+
+    out << std::endl;
 
     if(relErrMT < 0.01)
     {
-        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
+        out << __PRETTY_FUNCTION__ << " MultiThreaded PASSED" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
+        out << __PRETTY_FUNCTION__ << " MultiThreaded FAILED" << std::endl;
     }
 
     if(relErrGPU < 0.01)
     {
-        std::cout << __PRETTY_FUNCTION__ << " Hybrid Passed" << std::endl;
+        out << __PRETTY_FUNCTION__ << " Hybrid PASSED" << std::endl;
     }
     else
     {
-        std::cout << __PRETTY_FUNCTION__ << " Hybrid Failed" << std::endl;
+        out << __PRETTY_FUNCTION__ << " Hybrid FAILED" << std::endl;
     }
-    std::cout << std::endl;
+    out << std::endl;
+
+    logger.log(Logging::TEST_LOG, out.str());
 }
 
 int main()

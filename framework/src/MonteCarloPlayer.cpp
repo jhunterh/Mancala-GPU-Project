@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "MonteCarloPlayer.h"
 #include "GameTypes.h"
 #include "Timer.h"
@@ -58,7 +60,7 @@ void MonteCarloPlayer::selection() {
 
 // expands selected node if it is eligible for expansion
 void MonteCarloPlayer::expansion() {
-    
+
     // If this node hasn't been simulated,
     // Then we don't want to expand it yet
     if(!m_selectedNode->simulated) {
@@ -85,7 +87,7 @@ void MonteCarloPlayer::expansion() {
         } else if (result == Game::MOVE_SUCCESS_GO_AGAIN) {
             m_selectedNode->childNodes[i]->playerNum = m_selectedNode->playerNum;
         } else {
-            std::cout << "Invalid Move" << std::endl;
+            m_logger.log(Logging::SIMULATION_LOG,"Invalid Move!");
         }
 
         m_selectedNode->childNodes[i]->parentNode = m_selectedNode;
@@ -124,7 +126,7 @@ unsigned int MonteCarloPlayer::simulation() {
                     playerTurn = PLAYER_NUMBER_2;
                 }
             } else if (moveResult == Game::MOVE_INVALID) {
-                std::cout << "Invalid Move" << std::endl;
+                m_logger.log(Logging::SIMULATION_LOG,"Invalid Move!");
             }
             
             result = gameBoard.getBoardResult(playerTurn);
@@ -157,8 +159,10 @@ void MonteCarloPlayer::backpropagation() {
     }
 }
 
-void MonteCarloPlayer::printPerformanceData() {
-    std::cout << getDescription() << ":" << std::endl;
+// Get performance data string
+std::string MonteCarloPlayer::getPerformanceDataString() {
+    std::stringstream out("");
+    out << getDescription() << ":" << std::endl;
     unsigned int numSimulations = 0;
     double executionTimeAggregate = 0.0f;
     unsigned int numMovesSimulatedAggregate = 0;
@@ -170,8 +174,10 @@ void MonteCarloPlayer::printPerformanceData() {
     double averageExecutionTime = executionTimeAggregate / numSimulations;
     double movesPerSecond = numMovesSimulatedAggregate / (executionTimeAggregate / 1000);
 
-    std::cout << "\tAverage Execution Time (For Simulation Step) - " << averageExecutionTime << std::endl;
-    std::cout << "\tMoves Simulated Per Second - " << movesPerSecond << std::endl;
+    out << "\tAverage Execution Time (For Simulation Step) - " << averageExecutionTime << std::endl;
+    out << "\tMoves Simulated Per Second - " << movesPerSecond << std::endl;
+
+    return out.str();
 }
 
 }

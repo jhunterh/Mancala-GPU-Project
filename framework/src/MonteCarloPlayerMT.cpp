@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "MonteCarloPlayerMT.h"
 #include "GameTypes.h"
 #include "RandomPlayer.h"
@@ -17,11 +19,14 @@ MonteCarloPlayerMT::MonteCarloPlayerMT() {
     unsigned int numThreads = std::thread::hardware_concurrency();
     numThreads = (numThreads > MAX_NUM_THREADS) ? MAX_NUM_THREADS : numThreads; 
     if(numThreads > 0) {
+        std::stringstream out("");
+        out << getDescription() << ": Creating " << numThreads << " Simulation Threads" << std::endl;
+        m_logger.log(Logging::PERFORMANCE_LOG, out.str());
         for(unsigned int i = 0; i < numThreads; ++i) {
             m_threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this);
         }
     } else {
-        std::cout << "UNABLE TO DETECT NUMBER OF CORES ON SYSTEM!" << std::endl;
+        m_logger.log(Logging::PERFORMANCE_LOG, "UNABLE TO DETECT NUMBER OF CORES ON SYSTEM!");
     }
     
 }
@@ -86,7 +91,7 @@ void MonteCarloPlayerMT::simulationThread() {
                         playerTurn = PLAYER_NUMBER_2;
                     }
                 } else if (moveResult == Game::MOVE_INVALID) {
-                    std::cout << "Invalid Move" << std::endl;
+                    m_logger.log(Logging::SIMULATION_LOG, "Invalid Move!");
                 }
                 
                 result = gameBoard.getBoardResult(playerTurn);
