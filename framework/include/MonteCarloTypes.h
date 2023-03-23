@@ -8,6 +8,7 @@
 
 #include "game.h"
 #include "Player.h"
+#include "Logger.h"
 
 namespace MonteCarlo {
 
@@ -52,8 +53,9 @@ static bool isLeafNode(std::shared_ptr<TreeNode> node) {
 // Same as getMaxNode except non-visited nodes are
 // prioritized instead of ignored
 static int selectLeafNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
+    Logging::Logger& logger = Logging::Logger::getInstance();
     if (nodeList.size() <= 0) {
-        std::cout << "Node List Has No Nodes!" << std::endl;
+        logger.log(Logging::SIMULATION_LOG,"Node List Has No Nodes!");
         return -1;
     }
 
@@ -73,8 +75,9 @@ static int selectLeafNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
 
 // get node in list that maximizes value
 static int getMaxNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
+    Logging::Logger& logger = Logging::Logger::getInstance();
     if (nodeList.size() <= 0) {
-        std::cout << "Node List Has No Nodes!" << std::endl;
+        logger.log(Logging::SIMULATION_LOG,"Node List Has No Nodes!");
         return -1;
     }
 
@@ -98,6 +101,12 @@ static void calculateValue(std::shared_ptr<TreeNode> node, unsigned int rootVisi
     double avg = node->numWins / node->numTimesVisited;
     node->value = avg + explorationParam*sqrt(log(rootVisits) / node->numTimesVisited);
 }
+
+// Report given at the end of each simulation cycle
+struct SimulationPerformanceReport {
+    unsigned int numMovesSimulated = 0;
+    double executionTime = 0.0;
+};
 
 }
 

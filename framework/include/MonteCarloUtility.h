@@ -17,6 +17,7 @@ struct gpu_result
 {
     gpu_count_t winCount[2] = { 0, 0 };
     gpu_count_t playCount = 0;
+    gpu_count_t numMovesSimulated = 0;
 };
 
 struct deterministic_data

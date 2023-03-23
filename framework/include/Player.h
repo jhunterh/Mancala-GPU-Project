@@ -5,6 +5,7 @@
 #include <string>
 
 #include "GameBoard.h"
+#include "Logger.h"
 
 namespace Player {
 
@@ -26,10 +27,12 @@ public:
     // Select a move from the given boardstate
 	virtual Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum) = 0;
 
+    // Get performance data string
+    virtual std::string getPerformanceDataString() = 0;
+
 protected:
     Player() = default;
-
-private:
+    Logging::Logger& m_logger = Logging::Logger::getInstance();
 
 };
 

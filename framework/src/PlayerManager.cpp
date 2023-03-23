@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "PlayerManager.h"
 #include "RandomPlayer.h"
 #include "MonteCarloPlayer.h"
@@ -61,6 +63,22 @@ Game::move_t PlayerManager::getMove(playernum_t playerNum, Game::GameBoard& boar
 
     // Return player move
     return playerList[playerNum]->selectMove(board, playerNum);
+}
+
+// Print Player performance data
+std::string PlayerManager::getPerformanceDataString(playernum_t playerNum) 
+{
+    std::stringstream out("");
+    // Check that player number is not out of range
+    if(playerNum > PLAYER_NUMBER_2)
+    {
+        out << "Invalid Player" << std::endl;
+    }
+
+    // Print data
+    out << playerList[playerNum]->getPerformanceDataString();
+
+    return out.str();
 }
 
 }

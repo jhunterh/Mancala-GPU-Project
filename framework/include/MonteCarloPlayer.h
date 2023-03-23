@@ -6,8 +6,6 @@
 #include "RandomPlayer.h"
 #include "MonteCarloTypes.h"
 
-#define ITERATION_COUNT 1000
-
 namespace Player {
 
 // Definition of Monte Carlo Player
@@ -20,10 +18,13 @@ public:
     player_t getPlayerType() override { return 1; }
 	std::string getDescription() override { return "Monte Carlo Player"; }
 	Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum);
+    void setNumIterations(int iterations) {m_numIterations = iterations;}
+    std::vector<MonteCarlo::SimulationPerformanceReport> getSimulationReports() {return m_simulationReports;}
+    std::string getPerformanceDataString() override;
 
     // unit testing interface
     virtual void selection();
-    virtual void simulation();
+    virtual unsigned int simulation();
     virtual void expansion();
     virtual void backpropagation();
 
@@ -62,9 +63,11 @@ protected:
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::shared_ptr<MonteCarlo::TreeNode> m_selectedNode = nullptr;
     double m_explorationParam = 1;
-    virtual void runSearch();
+    int m_numIterations = 1000;
+    std::vector<MonteCarlo::SimulationPerformanceReport> m_simulationReports;
 
 private:
+    void runSearch();
     int m_numSimulations = 1;
 };
 

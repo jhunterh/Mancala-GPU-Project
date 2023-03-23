@@ -24,7 +24,7 @@ GAME_INCLUDE = -Igames/$(game)/include
 SIMULATION_INCLUDES = -Isimulation/include -Ibuild/include
 
 ## Files
-FRAMEWORK_FILES = PlayerManager RandomPlayer MonteCarloPlayer MonteCarloPlayerMT MonteCarloHybridPlayer
+FRAMEWORK_FILES = Logger PlayerManager RandomPlayer MonteCarloPlayer MonteCarloPlayerMT MonteCarloHybridPlayer Timer
 FRAMEWORK_CUDA_FILES = MonteCarloUtility
 GAME_FILES = GameBoard
 SIMULATION_FILES = main

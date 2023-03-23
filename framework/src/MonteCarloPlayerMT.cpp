@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "MonteCarloPlayerMT.h"
 #include "GameTypes.h"
 #include "RandomPlayer.h"
@@ -5,6 +7,8 @@
 namespace Player {
 
 MonteCarloPlayerMT::MonteCarloPlayerMT() {
+
+    m_numIterations = 250;
 
     m_explorationParam = 0;
 
@@ -15,11 +19,14 @@ MonteCarloPlayerMT::MonteCarloPlayerMT() {
     unsigned int numThreads = std::thread::hardware_concurrency();
     numThreads = (numThreads > MAX_NUM_THREADS) ? MAX_NUM_THREADS : numThreads; 
     if(numThreads > 0) {
+        std::stringstream out("");
+        out << getDescription() << ": Creating " << numThreads << " Simulation Threads" << std::endl;
+        m_logger.log(Logging::PERFORMANCE_LOG, out.str());
         for(unsigned int i = 0; i < numThreads; ++i) {
             m_threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this);
         }
     } else {
-        std::cout << "UNABLE TO DETECT NUMBER OF CORES ON SYSTEM!" << std::endl;
+        m_logger.log(Logging::PERFORMANCE_LOG, "UNABLE TO DETECT NUMBER OF CORES ON SYSTEM!");
     }
     
 }
@@ -31,21 +38,12 @@ MonteCarloPlayerMT::~MonteCarloPlayerMT() {
     for(auto& thread : m_threads) thread.join();
 }
 
-// Run the algorithm for specified number of iterations
-void MonteCarloPlayerMT::runSearch() {
-    for(int i = 0; i < ITERATION_COUNT_MT; ++i) {
-        selection();
-        expansion();
-        simulation();
-        backpropagation();
-    }
-}
-
 // run a single simulation from the selected node
-void MonteCarloPlayerMT::simulation() {
+unsigned int MonteCarloPlayerMT::simulation() {
 
     m_endStatesFound.store(0);
     m_winStatesFound.store(0);
+    m_numMovesSimulated.store(0);
     m_simulationDoneFlag.store(false);
     while(m_waitingThreads.load() < 4);
     m_simulationCondition.notify_all();
@@ -56,6 +54,8 @@ void MonteCarloPlayerMT::simulation() {
 
     m_selectedNode->numWins += avgWins;
     m_selectedNode->simulated = true;
+
+    return m_numMovesSimulated.load();
 }
 
 void MonteCarloPlayerMT::simulationThread() {
@@ -76,10 +76,13 @@ void MonteCarloPlayerMT::simulationThread() {
 
             Game::boardresult_t result = gameBoard.getBoardResult(playerTurn);
 
+            unsigned int localNumMovesSimulated = 0;
+
             while(result == Game::GAME_ACTIVE) {
 
                 Game::move_t selectedMove = m_randomPlayer->selectMove(gameBoard, playerTurn);
                 Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
+                ++localNumMovesSimulated;
 
                 if (moveResult == Game::MOVE_SUCCESS) {
                     if (playerTurn == PLAYER_NUMBER_2) {
@@ -88,11 +91,12 @@ void MonteCarloPlayerMT::simulationThread() {
                         playerTurn = PLAYER_NUMBER_2;
                     }
                 } else if (moveResult == Game::MOVE_INVALID) {
-                    std::cout << "Invalid Move" << std::endl;
+                    m_logger.log(Logging::SIMULATION_LOG, "Invalid Move!");
                 }
                 
                 result = gameBoard.getBoardResult(playerTurn);
             }
+            m_numMovesSimulated += localNumMovesSimulated;
             
             if(GameUtils::getPlayerFromBoardResult(result) == m_rootNode->playerNum) {
                 ++m_winStatesFound;

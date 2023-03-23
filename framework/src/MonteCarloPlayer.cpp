@@ -1,5 +1,8 @@
+#include <sstream>
+
 #include "MonteCarloPlayer.h"
 #include "GameTypes.h"
+#include "Timer.h"
 
 namespace Player {
 
@@ -30,10 +33,17 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
 
 // Run the algorithm for specified number of iterations
 void MonteCarloPlayer::runSearch() {
-    for(size_t i = 0; i < ITERATION_COUNT; ++i) {
+    Timer timer;
+    for(size_t i = 0; i < m_numIterations; ++i) {
         selection();
         expansion();
-        simulation();
+        timer.start();
+        unsigned int numMovesSimulated = simulation();
+        timer.stop();
+        MonteCarlo::SimulationPerformanceReport simReport;
+        simReport.executionTime = timer.elapsedTime_ms();
+        simReport.numMovesSimulated = numMovesSimulated;
+        m_simulationReports.push_back(simReport);
         backpropagation();
     }
 }
@@ -50,7 +60,7 @@ void MonteCarloPlayer::selection() {
 
 // expands selected node if it is eligible for expansion
 void MonteCarloPlayer::expansion() {
-    
+
     // If this node hasn't been simulated,
     // Then we don't want to expand it yet
     if(!m_selectedNode->simulated) {
@@ -77,7 +87,7 @@ void MonteCarloPlayer::expansion() {
         } else if (result == Game::MOVE_SUCCESS_GO_AGAIN) {
             m_selectedNode->childNodes[i]->playerNum = m_selectedNode->playerNum;
         } else {
-            std::cout << "Invalid Move" << std::endl;
+            m_logger.log(Logging::SIMULATION_LOG,"Invalid Move!");
         }
 
         m_selectedNode->childNodes[i]->parentNode = m_selectedNode;
@@ -92,8 +102,10 @@ void MonteCarloPlayer::expansion() {
 }
 
 // run single-threaded simulations from the selected node
-void MonteCarloPlayer::simulation() {
+unsigned int MonteCarloPlayer::simulation() {
     int numWins = 0;
+
+    unsigned int numMovesSimulated = 0;
 
     for(int i = 0; i < m_numSimulations; ++i) {
         Game::GameBoard gameBoard = m_selectedNode->boardState;
@@ -105,6 +117,7 @@ void MonteCarloPlayer::simulation() {
 
             Game::move_t selectedMove = m_randomPlayer->selectMove(gameBoard, playerTurn);
             Game::moveresult_t moveResult = gameBoard.executeMove(selectedMove, playerTurn);
+            ++numMovesSimulated;
 
             if (moveResult == Game::MOVE_SUCCESS) {
                 if (playerTurn == PLAYER_NUMBER_2) {
@@ -113,7 +126,7 @@ void MonteCarloPlayer::simulation() {
                     playerTurn = PLAYER_NUMBER_2;
                 }
             } else if (moveResult == Game::MOVE_INVALID) {
-                std::cout << "Invalid Move" << std::endl;
+                m_logger.log(Logging::SIMULATION_LOG,"Invalid Move!");
             }
             
             result = gameBoard.getBoardResult(playerTurn);
@@ -127,6 +140,8 @@ void MonteCarloPlayer::simulation() {
     m_selectedNode->numWins += ((double) numWins) / m_numSimulations;
 
     m_selectedNode->simulated = true;
+
+    return numMovesSimulated;
 }
 
 // propagates simulation results back to the gop of the tree
@@ -142,6 +157,27 @@ void MonteCarloPlayer::backpropagation() {
         m_selectedNode->numWins += backPropValue;
         MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, m_explorationParam);
     }
+}
+
+// Get performance data string
+std::string MonteCarloPlayer::getPerformanceDataString() {
+    std::stringstream out("");
+    out << getDescription() << ":" << std::endl;
+    unsigned int numSimulations = 0;
+    double executionTimeAggregate = 0.0f;
+    unsigned int numMovesSimulatedAggregate = 0;
+    for(auto report : m_simulationReports) {
+        ++numSimulations;
+        executionTimeAggregate += report.executionTime;
+        numMovesSimulatedAggregate += report.numMovesSimulated;
+    }
+    double averageExecutionTime = executionTimeAggregate / numSimulations;
+    double movesPerSecond = numMovesSimulatedAggregate / (executionTimeAggregate / 1000);
+
+    out << "\tAverage Execution Time (For Simulation Step) - " << averageExecutionTime << std::endl;
+    out << "\tMoves Simulated Per Second - " << movesPerSecond << std::endl;
+
+    return out.str();
 }
 
 }

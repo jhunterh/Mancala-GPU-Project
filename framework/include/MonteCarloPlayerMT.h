@@ -12,8 +12,6 @@
 
 #define NUM_END_STATES_DESIRED 16
 #define MAX_NUM_THREADS 4
-#define EXPLORATION_PARAM_MT 0
-#define ITERATION_COUNT_MT 250
 
 namespace Player {
 
@@ -28,10 +26,7 @@ public:
     player_t getPlayerType() override { return 2; }
 
     // unit testing interface
-    void simulation() override;
-
-protected:
-    void runSearch() override;
+    unsigned int simulation() override;
 
 private:
     void simulationThread();
@@ -39,6 +34,7 @@ private:
     std::atomic<unsigned int> m_endStatesFound;
     std::atomic<unsigned int> m_winStatesFound;
     std::atomic<unsigned int> m_waitingThreads;
+    std::atomic<unsigned int> m_numMovesSimulated;
     std::atomic<bool> m_simulationDoneFlag;
     std::atomic<bool> m_gameFinishFlag;
     std::mutex m_simulationMutex;

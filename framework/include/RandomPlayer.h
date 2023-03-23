@@ -1,6 +1,7 @@
 #ifndef _RANDOMPLAYER_H
 #define _RANDOMPLAYER_H
 
+#include <iostream>
 #include <vector>
 
 #include "Player.h"
@@ -16,6 +17,7 @@ public:
 
     player_t getPlayerType() override { return 0; }
 	std::string getDescription() override { return "Random Player"; }
+    std::string getPerformanceDataString() override {return (getDescription()+": No Performance Data\n");}
 	Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum);
 
     // unit testing interface

@@ -1,11 +1,19 @@
 #include <iostream>
+#include <sstream>
 #include <string>
+#include <sstream>
 
 #include "PlayerManager.h"
+#include "Timer.h"
+#include "Logger.h"
 
 // Simulation for any two person board game
 int main(int argc, char **argv)
 {
+    Logging::Logger& logger = Logging::Logger::getInstance();
+    std::stringstream out("");
+    logger.log(Logging::PERFORMANCE_LOG,"Performance Log Begin");
+    logger.log(Logging::SIMULATION_LOG,"Simulation Log Begin");
     // Check CMD arguments
     if(argc != 4)
     {
@@ -46,9 +54,11 @@ int main(int argc, char **argv)
         gameBoard.initBoard();
 
         // Play game
-        std::cout << "GAME STARTING" << std::endl << std::endl
+        out.str(std::string(""));
+        out << "GAME STARTING" << std::endl << std::endl
                 << "Beginning game state:" << std::endl 
                 << gameBoard.getBoardStateString() << std::endl << std::endl;
+        logger.log(Logging::SIMULATION_LOG, out.str());
 
         Player::playernum_t activePlayer = Player::PLAYER_NUMBER_1;
         Game::boardresult_t gameResult = Game::GAME_ACTIVE;
@@ -63,16 +73,20 @@ int main(int argc, char **argv)
             // Verify valid move result
             if(!moveResult)
             {
-                std::cout << "[ERROR] Incorrect move for player " << std::to_string(activePlayer) 
+                out.str(std::string(""));
+                out << "[ERROR] Incorrect move for player " << std::to_string(activePlayer) 
                             << " given: " << std::to_string(move) << std::endl;
+                logger.log(Logging::SIMULATION_LOG, out.str());
                 return 1;
             }
 
             // Print move and new board state
-            std::cout   << "Player " << std::to_string(activePlayer + 1)
+            out.str(std::string(""));
+            out   << "Player " << std::to_string(activePlayer + 1)
                         << " Makes Move: " << std::to_string(move) << std::endl 
                         << "New board state:" << std::endl 
                         << gameBoard.getBoardStateString() << std::endl << std::endl;
+            logger.log(Logging::SIMULATION_LOG, out.str());
 
             // Check move result
             if(moveResult == Game::MOVE_SUCCESS)
@@ -88,31 +102,42 @@ int main(int argc, char **argv)
         }
 
         // Output game win
+        out.str(std::string(""));
         switch(gameResult)
         {
+            
             case Game::GAME_OVER_PLAYER1_WIN:
-                std::cout << "Player 1 wins!" << std::endl;
+                out << "Player 1 wins!" << std::endl;
                 ++p1wins;
                 break;
             case Game::GAME_OVER_PLAYER2_WIN:
-                std::cout << "Player 2 wins!" << std::endl;
+                out << "Player 2 wins!" << std::endl;
                 ++p2wins;
                 break;
             case Game::GAME_OVER_TIE:
-                std::cout << "Game ended in a tie!" << std::endl;
+                out << "Game ended in a tie!" << std::endl;
                 ++ties;
                 break;
         }
+        logger.log(Logging::SIMULATION_LOG, out.str());
 
         // Print final boardstate
-        std::cout << "Final board state: " << std::endl
+        out.str(std::string(""));
+        out << "Final board state: " << std::endl
                 << gameBoard.getBoardStateString() << std::endl;
+        logger.log(Logging::SIMULATION_LOG, out.str());
     }
+    out.str(std::string(""));
+    out << std::endl << "Number of Rounds Played: " << numRounds << std::endl;
+    out << "Player 1 Wins: " << p1wins << std::endl;
+    out << "Player 2 Wins: " << p2wins << std::endl;
+    out << "Ties: " << ties << std::endl;
 
-    std::cout << std::endl << "Number of Rounds Played: " << numRounds << std::endl;
-    std::cout << "Player 1 Wins: " << p1wins << std::endl;
-    std::cout << "Player 2 Wins: " << p2wins << std::endl;
-    std::cout << "Ties: " << ties << std::endl;
+    out << std::endl << "Player 1 Performance Data:" << std::endl;
+    out << playerManager.getPerformanceDataString(Player::PLAYER_NUMBER_1);
+    out << std::endl << "Player 2 Performance Data:" << std::endl;
+    out << playerManager.getPerformanceDataString(Player::PLAYER_NUMBER_2);
+    logger.log(Logging::PERFORMANCE_LOG, out.str());
 
     return 0;
 } // end main
