@@ -20,7 +20,7 @@ public:
 	std::string getDescription() override { return "Pure Monte Carlo Player"; }
 	Game::move_t selectMove(Game::GameBoard& board, playernum_t playerNum);
     std::vector<MonteCarlo::SimulationPerformanceReport> getSimulationReports() {return m_simulationReports;}
-    std::string getPerformanceDataString() override {return "";};
+    std::string getPerformanceDataString() override;
 
     // unit testing interface
     void setDeterministic(bool isPreDetermined, int value) 
@@ -40,7 +40,7 @@ public:
     }
 
 private:
-    void simulationThread(int threadNum, std::vector<unsigned int>& simulationResults);
+    void simulationThread(int threadNum, std::vector<unsigned int>& simulationResults, std::vector<unsigned int>& simulationNumMoves);
     int m_numSimulations = 1000;
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::vector<MonteCarlo::SimulationPerformanceReport> m_simulationReports;

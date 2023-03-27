@@ -21,6 +21,10 @@ Game::move_t PureMonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_
 
     std::vector<std::thread> simulationThreads;
     std::vector<unsigned int> simulationResults;
+    std::vector<unsigned int> simulationNumMoves;
+
+    Timer timer;
+    timer.start();
 
     // Expand the selected node
     for(int i = 0; i < count; ++i) {
@@ -44,15 +48,31 @@ Game::move_t PureMonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_
         m_rootNode->childNodes[i]->parentNode = m_rootNode;
 
         simulationResults.push_back(0);
+        MonteCarlo::SimulationPerformanceReport simReport;
+        simReport.numMovesSimulated = 0;
+        simReport.executionTime = 0.0f;
+        simulationNumMoves.push_back(0);
 
         // launch thread
-        simulationThreads.emplace_back(&PureMonteCarloPlayer::simulationThread, this, i, std::ref(simulationResults));
+        simulationThreads.emplace_back(&PureMonteCarloPlayer::simulationThread, this, i, std::ref(simulationResults), std::ref(simulationNumMoves));
     }
 
     // wait for simulations to finish
     for(auto& thread : simulationThreads) {
         thread.join();
     }
+    timer.stop();
+
+    unsigned int numMoves = 0;
+    for(auto& count : simulationNumMoves) {
+        numMoves += count;
+    }
+
+    MonteCarlo::SimulationPerformanceReport simReport;
+    simReport.numMovesSimulated = numMoves;
+    simReport.executionTime = timer.elapsedTime_ms();
+
+    m_simulationReports.push_back(simReport);
 
     int max = 0;
     for(int i = 0; i < count; ++i) {
@@ -64,10 +84,12 @@ Game::move_t PureMonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_
     return moveList[max];
 }
 
-void PureMonteCarloPlayer::simulationThread(int threadNum, std::vector<unsigned int>& simulationResults) {
+void PureMonteCarloPlayer::simulationThread(int threadNum, std::vector<unsigned int>& simulationResults, std::vector<unsigned int>& simulationNumMoves) {
     // Start simulation
     gpu_result gpuResult;
     simulationGPU(&gpuResult, m_rootNode->childNodes[threadNum]->boardState, m_rootNode->childNodes[threadNum]->playerNum, m_deterministicData);
+
+    simulationNumMoves[threadNum] = gpuResult.numMovesSimulated;
 
     // Make sure playcount is not equal to 0
     if(gpuResult.playCount == 0)
@@ -81,7 +103,7 @@ void PureMonteCarloPlayer::simulationThread(int threadNum, std::vector<unsigned 
 }
 
 // Get performance data string
-/*std::string PureMonteCarloPlayer::getPerformanceDataString() {
+std::string PureMonteCarloPlayer::getPerformanceDataString() {
     std::stringstream out("");
     out << getDescription() << ":" << std::endl;
     unsigned int numSimulations = 0;
@@ -99,6 +121,6 @@ void PureMonteCarloPlayer::simulationThread(int threadNum, std::vector<unsigned 
     out << "\tMoves Simulated Per Second - " << movesPerSecond << std::endl;
 
     return out.str();
-}*/
+}
 
 }
