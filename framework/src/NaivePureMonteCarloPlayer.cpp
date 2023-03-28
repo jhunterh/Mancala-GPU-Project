@@ -7,6 +7,12 @@
 
 namespace Player {
 
+// Default Constructor
+NaivePureMonteCarloPlayer::NaivePureMonteCarloPlayer()
+{
+    m_randomPlayer = std::shared_ptr<RandomPlayer>(new RandomPlayer());
+}
+
 // Select a move from the given boardstate
 Game::move_t NaivePureMonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t playerNum)
 {
@@ -82,11 +88,9 @@ void NaivePureMonteCarloPlayer::runSimulation(unsigned int& simulationResults, u
     playernum_t playerTurn = m_rootNode->childNodes[moveNum]->playerNum;
     Game::boardresult_t result = boardState.getBoardResult(playerTurn);
 
-    RandomPlayer randomPlayer;
-
     while(result == Game::GAME_ACTIVE) {
 
-        Game::move_t selectedMove = randomPlayer.selectMove(boardState, playerTurn);
+        Game::move_t selectedMove = m_randomPlayer->selectMove(boardState, playerTurn);
         Game::moveresult_t moveResult = boardState.executeMove(selectedMove, playerTurn);
         ++simulationNumMoves;
 

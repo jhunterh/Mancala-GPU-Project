@@ -39,8 +39,9 @@ public:
         m_rootNode = node;
     }
 
-private:
     void simulationThread(int threadNum, std::vector<unsigned int>& simulationResults, std::vector<unsigned int>& simulationNumMoves);
+
+private:
     int m_numSimulations = 1000;
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::vector<MonteCarlo::SimulationPerformanceReport> m_simulationReports;

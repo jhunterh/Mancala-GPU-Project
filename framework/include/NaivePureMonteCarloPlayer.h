@@ -13,7 +13,7 @@ namespace Player {
 // This player selects a move based on the Pure Monte Carlo Search Algorithm
 class NaivePureMonteCarloPlayer : public Player {
 public:
-    NaivePureMonteCarloPlayer() = default;
+    NaivePureMonteCarloPlayer();
     ~NaivePureMonteCarloPlayer() = default;
 
     player_t getPlayerType() override { return 5; }
@@ -25,8 +25,7 @@ public:
     // unit testing interface
     void setDeterministic(bool isPreDetermined, int value) 
     {
-        m_deterministicData.isPreDetermined = isPreDetermined;
-        m_deterministicData.value = value;
+        m_randomPlayer->setDeterministic(isPreDetermined, value);
     }
 
     void setNumSimulations(int num)
@@ -39,12 +38,13 @@ public:
         m_rootNode = node;
     }
 
-private:
     void runSimulation(unsigned int& simulationResults, unsigned int& simulationNumMoves, int moveNum);
+
+private:
     int m_numSimulations = 1000;
+    std::shared_ptr<RandomPlayer> m_randomPlayer;
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::vector<MonteCarlo::SimulationPerformanceReport> m_simulationReports;
-    deterministic_data m_deterministicData;
 };
 
 }
