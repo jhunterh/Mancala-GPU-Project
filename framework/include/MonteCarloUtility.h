@@ -4,12 +4,12 @@
 #include "GameTypes.h"
 #include "GameBoard.h"
 
-#define BLOCK_SIZE 128
-#define PLAYCOUNT_THRESHOLD_GPU 200
+#define BLOCK_SIZE 200 // max thread count per block
+#define GRID_SIZE 2 // 2 blocks of 1024 threads
 
 // Note: For future use
 // Launch configurator says 576 block size and 216 grid size for max launch
-#define GRID_SIZE 216
+//#define GRID_SIZE 216
 #define LAUNCH_SIZE (BLOCK_SIZE * GRID_SIZE)
 
 typedef unsigned int gpu_count_t;

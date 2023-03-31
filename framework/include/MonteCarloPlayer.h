@@ -65,6 +65,7 @@ protected:
     double m_explorationParam = 1;
     int m_numIterations = 1000;
     std::vector<MonteCarlo::SimulationPerformanceReport> m_simulationReports;
+    std::vector<double> m_executionTimes;
 
 private:
     void runSearch();
