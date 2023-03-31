@@ -304,10 +304,14 @@ void backpropagationTest()
     uutMT.backpropagation();
     uutGPU.backpropagation();
 
-    double relErrMT = (referenceNode->value - uutMTNode->value)*(referenceNode->value - uutMTNode->value) 
-                        + (referenceNode2->value - uutMTNode2->value)*(referenceNode2->value - uutMTNode2->value);
-    double relErrGPU = (referenceNode->value - uutGPUNode->value)*(referenceNode->value - uutGPUNode->value) 
-                        + (referenceNode2->value - uutGPUNode2->value)*(referenceNode2->value - uutGPUNode2->value);
+    double referenceNormSquared = referenceNode->value * referenceNode->value;
+    double diffMTNormSquared = (referenceNode->value - uutMTNode->value)*(referenceNode->value - uutMTNode->value) 
+                                + (referenceNode2->value - uutMTNode2->value)*(referenceNode2->value - uutMTNode2->value);
+    double diffGPUNormSquared = (referenceNode->value - uutGPUNode->value)*(referenceNode->value - uutGPUNode->value) 
+                                + (referenceNode2->value - uutGPUNode2->value)*(referenceNode2->value - uutGPUNode2->value);
+
+    double relErrMT = sqrt(diffMTNormSquared / referenceNormSquared);
+    double relErrGPU = sqrt(diffGPUNormSquared / referenceNormSquared);
 
     std::stringstream out("");
 
