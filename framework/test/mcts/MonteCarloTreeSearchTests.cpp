@@ -374,7 +374,7 @@ void pureMonteCarloTest()
     std::vector<unsigned int> simulationNumMoves_uut(1,0);
 
     reference.runSimulation(simulationResults_ref, simulationNumMoves_ref, moveNum);
-    uut.simulationThread(moveNum, simulationResults_uut, simulationNumMoves_uut);
+    uut.simulateMove(moveNum, simulationResults_uut, simulationNumMoves_uut);
 
     bool pass = false;
     if(simulationResults_ref*PLAYCOUNT_THRESHOLD_GPU == simulationResults_uut[0])

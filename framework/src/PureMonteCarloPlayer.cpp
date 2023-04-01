@@ -7,9 +7,19 @@
 
 namespace Player {
 
+// Default Constructor
+PureMonteCarloPlayer::PureMonteCarloPlayer()
+{
+    setDeterministic(false, 0);
+    curandInit();
+}
+
 // Select a move from the given boardstate
 Game::move_t PureMonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t playerNum)
 {
+    Timer turnTimer;
+    turnTimer.start();
+
     m_rootNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
     m_rootNode->boardState = board;
     m_rootNode->playerNum = playerNum;
@@ -19,7 +29,6 @@ Game::move_t PureMonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_
     Game::movelist_t moveList;
     Game::movecount_t count = board.getMoves(moveList, playerNum);
 
-    std::vector<std::thread> simulationThreads;
     std::vector<unsigned int> simulationResults;
     std::vector<unsigned int> simulationNumMoves;
 
@@ -48,19 +57,12 @@ Game::move_t PureMonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_
         m_rootNode->childNodes[i]->parentNode = m_rootNode;
 
         simulationResults.push_back(0);
-        MonteCarlo::SimulationPerformanceReport simReport;
-        simReport.numMovesSimulated = 0;
-        simReport.executionTime = 0.0f;
         simulationNumMoves.push_back(0);
 
         // launch thread
-        simulationThreads.emplace_back(&PureMonteCarloPlayer::simulationThread, this, i, std::ref(simulationResults), std::ref(simulationNumMoves));
+        simulateMove(i, simulationResults, simulationNumMoves);
     }
-
-    // wait for simulations to finish
-    for(auto& thread : simulationThreads) {
-        thread.join();
-    }
+    
     timer.stop();
 
     unsigned int numMoves = 0;
@@ -81,24 +83,27 @@ Game::move_t PureMonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_
         }
     }
 
+    turnTimer.stop();
+    m_executionTimes.push_back(turnTimer.elapsedTime_ms());
+    
     return moveList[max];
 }
 
-void PureMonteCarloPlayer::simulationThread(int threadNum, std::vector<unsigned int>& simulationResults, std::vector<unsigned int>& simulationNumMoves) {
+void PureMonteCarloPlayer::simulateMove(int moveNum, std::vector<unsigned int>& simulationResults, std::vector<unsigned int>& simulationNumMoves) {
     // Start simulation
     gpu_result gpuResult;
-    simulationGPU(&gpuResult, m_rootNode->childNodes[threadNum]->boardState, m_rootNode->childNodes[threadNum]->playerNum, m_deterministicData);
+    simulationGPU(&gpuResult, m_rootNode->childNodes[moveNum]->boardState, m_rootNode->childNodes[moveNum]->playerNum, m_deterministicData);
 
-    simulationNumMoves[threadNum] = gpuResult.numMovesSimulated;
+    simulationNumMoves[moveNum] = gpuResult.numMovesSimulated;
 
     // Make sure playcount is not equal to 0
     if(gpuResult.playCount == 0)
     {
-        printf("[ERROR] Playcount is equal to 0!\n");
+        m_logger.log(Logging::SIMULATION_LOG, "[ERROR] Playcount is equal to 0!");
     }
     else
     {
-        simulationResults[threadNum] = gpuResult.winCount[m_rootNode->playerNum];
+        simulationResults[moveNum] = gpuResult.winCount[m_rootNode->playerNum];
     }
 }
 
@@ -117,6 +122,14 @@ std::string PureMonteCarloPlayer::getPerformanceDataString() {
     double averageExecutionTime = executionTimeAggregate / numSimulations;
     double movesPerSecond = numMovesSimulatedAggregate / (executionTimeAggregate / 1000);
 
+    double turnTimesAggregate = 0;
+    for(auto turnTime : m_executionTimes)
+    {
+        turnTimesAggregate += (turnTime / 1000);
+    }
+    double avgTurnTime = turnTimesAggregate / m_executionTimes.size();
+
+    out << "\tAverage Turn Execution Time - " << avgTurnTime << std::endl;
     out << "\tAverage Execution Time (For Simulation Step) - " << averageExecutionTime << std::endl;
     out << "\tMoves Simulated Per Second - " << movesPerSecond << std::endl;
 
