@@ -4,7 +4,7 @@
 #include "GameTypes.h"
 #include "GameBoard.h"
 
-#define BLOCK_SIZE 200 // max thread count per block
+#define BLOCK_SIZE 1024 // max thread count per block
 #define GRID_SIZE 2 // 2 blocks of 1024 threads
 
 // Note: For future use
