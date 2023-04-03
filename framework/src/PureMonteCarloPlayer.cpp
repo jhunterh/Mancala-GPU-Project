@@ -116,11 +116,11 @@ std::string PureMonteCarloPlayer::getPerformanceDataString() {
     unsigned int numMovesSimulatedAggregate = 0;
     for(auto report : m_simulationReports) {
         ++numSimulations;
-        executionTimeAggregate += report.executionTime;
+        executionTimeAggregate += (report.executionTime / 1000);
         numMovesSimulatedAggregate += report.numMovesSimulated;
     }
     double averageExecutionTime = executionTimeAggregate / numSimulations;
-    double movesPerSecond = numMovesSimulatedAggregate / (executionTimeAggregate / 1000);
+    double movesPerSecond = numMovesSimulatedAggregate / executionTimeAggregate;
 
     double turnTimesAggregate = 0;
     for(auto turnTime : m_executionTimes)

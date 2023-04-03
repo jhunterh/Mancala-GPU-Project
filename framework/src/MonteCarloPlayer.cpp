@@ -31,7 +31,7 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
     int maxNode = MonteCarlo::getMaxNode(m_rootNode->childNodes);
 
     timer.stop();
-    m_executionTimes.push_back(timer.elapsedTime_ms() / 1000);
+    m_executionTimes.push_back(timer.elapsedTime_ms());
 
     return moveList[maxNode];
 }
@@ -173,16 +173,16 @@ std::string MonteCarloPlayer::getPerformanceDataString() {
     unsigned int numMovesSimulatedAggregate = 0;
     for(auto report : m_simulationReports) {
         ++numSimulations;
-        executionTimeAggregate += report.executionTime;
+        executionTimeAggregate += (report.executionTime / 1000);
         numMovesSimulatedAggregate += report.numMovesSimulated;
     }
     double averageExecutionTime = executionTimeAggregate / numSimulations;
-    double movesPerSecond = numMovesSimulatedAggregate / (executionTimeAggregate / 1000);
+    double movesPerSecond = numMovesSimulatedAggregate / executionTimeAggregate;
 
     double timeAggregate = 0;
     for(auto time : m_executionTimes)
     {
-        timeAggregate += time;
+        timeAggregate += (time / 1000);
     }
     double avgTurnExecutionTime = timeAggregate / m_executionTimes.size();
     
