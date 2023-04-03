@@ -1,6 +1,8 @@
 #include "GameBoard.h"
 #include <sstream>
 #include <iomanip>
+#include <ctime>
+#include <cstdlib>
 
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -225,6 +227,28 @@ std::string GameBoard::getBoardStateString()
 std::string GameBoard::getMoveString(move_t move)
 {
     return std::to_string(move);
+}
+
+// Set the board to a random state
+void GameBoard::scramble()
+{
+    int stones = 48;
+    srand(time(NULL));
+
+    // set each hole to random value
+    for(int i = 0; i < 13; ++i)
+    {
+        if(i == P1_GOAL || i == P2_GOAL) continue;
+
+        int num = rand() % 5;  // random number between 0 and 4
+        boardState[i] = num;
+        stones -= num;
+    }
+
+        int num = stones/2;
+        stones -= num;
+        boardState[P1_GOAL] = num;
+        boardState[P2_GOAL] = stones;
 }
 
 }

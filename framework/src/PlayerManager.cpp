@@ -1,8 +1,12 @@
+#include <sstream>
+
 #include "PlayerManager.h"
 #include "RandomPlayer.h"
 #include "MonteCarloPlayer.h"
 #include "MonteCarloPlayerMT.h"
 #include "MonteCarloHybridPlayer.h"
+#include "PureMonteCarloPlayer.h"
+#include "NaivePureMonteCarloPlayer.h"
 
 namespace Player
 {
@@ -13,7 +17,9 @@ const std::vector<std::shared_ptr<Player>> PlayerManager::playerTypeList = {
     std::shared_ptr<Player>(new RandomPlayer()),
     std::shared_ptr<Player>(new MonteCarloPlayer()),
     std::shared_ptr<Player>(new MonteCarloPlayerMT()),
-    std::shared_ptr<Player>(new MonteCarloHybridPlayer())
+    std::shared_ptr<Player>(new MonteCarloHybridPlayer()),
+    std::shared_ptr<Player>(new PureMonteCarloPlayer()),
+    std::shared_ptr<Player>(new NaivePureMonteCarloPlayer())
 };
 
 // Returns list of player types
@@ -62,6 +68,22 @@ Game::move_t PlayerManager::getMove(playernum_t playerNum, Game::GameBoard& boar
 
     // Return player move
     return playerList[playerNum]->selectMove(board, playerNum);
+}
+
+// Print Player performance data
+std::string PlayerManager::getPerformanceDataString(playernum_t playerNum) 
+{
+    std::stringstream out("");
+    // Check that player number is not out of range
+    if(playerNum > PLAYER_NUMBER_2)
+    {
+        out << "Invalid Player" << std::endl;
+    }
+
+    // Print data
+    out << playerList[playerNum]->getPerformanceDataString();
+
+    return out.str();
 }
 
 }

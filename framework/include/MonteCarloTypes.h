@@ -8,6 +8,7 @@
 
 #include "game.h"
 #include "Player.h"
+#include "Logger.h"
 
 namespace MonteCarlo {
 
@@ -22,6 +23,27 @@ struct TreeNode {
     bool simulated = false;
 };
 
+// compare two nodes
+static bool nodeCompare(std::shared_ptr<TreeNode> nodeA, std::shared_ptr<TreeNode> nodeB) {
+    bool equals = true;
+
+    if(nodeA->boardState.getBoardStateString() != nodeB->boardState.getBoardStateString()) {
+        equals = false;
+    } else if(nodeA->playerNum != nodeB->playerNum) {
+        equals = false;
+    } else if(nodeA->value != nodeB->value) {
+        equals = false;
+    } else if(nodeA->numTimesVisited != nodeB->numTimesVisited) {
+        equals = false;
+    } else if(nodeA->numWins != nodeB->numWins) {
+        equals = false;
+    } else if(nodeA->simulated != nodeB->simulated) {
+        equals = false;
+    }
+
+    return equals;
+}
+
 // is the node a leaf node?
 static bool isLeafNode(std::shared_ptr<TreeNode> node) {
     return (node->childNodes.size() <= 0);
@@ -31,8 +53,9 @@ static bool isLeafNode(std::shared_ptr<TreeNode> node) {
 // Same as getMaxNode except non-visited nodes are
 // prioritized instead of ignored
 static int selectLeafNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
+    Logging::Logger& logger = Logging::Logger::getInstance();
     if (nodeList.size() <= 0) {
-        std::cout << "Node List Has No Nodes!" << std::endl;
+        logger.log(Logging::SIMULATION_LOG,"Node List Has No Nodes!");
         return -1;
     }
 
@@ -52,8 +75,9 @@ static int selectLeafNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
 
 // get node in list that maximizes value
 static int getMaxNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
+    Logging::Logger& logger = Logging::Logger::getInstance();
     if (nodeList.size() <= 0) {
-        std::cout << "Node List Has No Nodes!" << std::endl;
+        logger.log(Logging::SIMULATION_LOG,"Node List Has No Nodes!");
         return -1;
     }
 
@@ -77,6 +101,12 @@ static void calculateValue(std::shared_ptr<TreeNode> node, unsigned int rootVisi
     double avg = node->numWins / node->numTimesVisited;
     node->value = avg + explorationParam*sqrt(log(rootVisits) / node->numTimesVisited);
 }
+
+// Report given at the end of each simulation cycle
+struct SimulationPerformanceReport {
+    unsigned int numMovesSimulated = 0;
+    double executionTime = 0.0;
+};
 
 }
 

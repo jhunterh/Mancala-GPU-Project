@@ -1,7 +1,6 @@
 #include "MonteCarloHybridPlayer.h"
 #include "GameTypes.h"
 #include "RandomPlayer.h"
-#include "MonteCarloUtility.h"
 
 #include <cstdio>
 
@@ -10,26 +9,27 @@ namespace Player {
 // Constructor for MonteCarloHybridPlayer
 MonteCarloHybridPlayer::MonteCarloHybridPlayer()
 {
+    m_numIterations = 250;
+
     // Init curand values
     curandInit();
+    m_explorationParam = 0;
+    setDeterministic(false, 0);
 }
 
-// Run the algorithm for specified number of iterations
-void MonteCarloHybridPlayer::runSearch() {
-    for(size_t i = 0; i < ITERATION_COUNT_HYBRID; ++i) {
-        selection();
-        expansion();
-        simulation();
-        backpropagation();
-    }
+// set random value to pre-determined value (for unit testing)
+void MonteCarloHybridPlayer::setDeterministic(bool isPreDetermined, int value)
+{
+    m_deterministicData.isPreDetermined = isPreDetermined;
+    m_deterministicData.value = value;
 }
 
 // run a single simulation from the selected node
-void MonteCarloHybridPlayer::simulation()
+unsigned int MonteCarloHybridPlayer::simulation()
 {
     // Start simulation
     gpu_result gpuResult;
-    simulationGPU(&gpuResult, m_selectedNode->boardState, m_selectedNode->playerNum);
+    simulationGPU(&gpuResult, m_selectedNode->boardState, m_selectedNode->playerNum, m_deterministicData);
 
     // Make sure playcount is not equal to 0
     if(gpuResult.playCount == 0)
@@ -48,21 +48,8 @@ void MonteCarloHybridPlayer::simulation()
 
     // Mark node as simulated
     m_selectedNode->simulated = true;
-}
 
-// propagates simulation results back to the gop of the tree
-void MonteCarloHybridPlayer::backpropagation() {
-    // numWins at this point should only be 0 or 1 for m_selectedNode
-    // It is possible if a leaf node is simulated more than once
-    // for numWins to be greater than 1, but that breaks the tree's win/loss ratios
-    // so I handle that case with the conditional below
-    double backPropValue = (m_selectedNode->numWins > 1) ? 1 : m_selectedNode->numWins;
-    MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM_HYBRID);
-    while(m_selectedNode->parentNode != nullptr) {
-        m_selectedNode = m_selectedNode->parentNode;
-        m_selectedNode->numWins += backPropValue;
-        MonteCarlo::calculateValue(m_selectedNode, m_rootNode->numTimesVisited, EXPLORATION_PARAM_HYBRID);
-    }
+    return gpuResult.numMovesSimulated;
 }
 
 }

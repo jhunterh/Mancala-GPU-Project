@@ -46,6 +46,10 @@ public:
 
     // Returns the move in string form
     static std::string getMoveString(move_t);
+    
+    // Unit Testing Interface
+    // Set the board to a random state
+    void scramble();
 
 private:
 
