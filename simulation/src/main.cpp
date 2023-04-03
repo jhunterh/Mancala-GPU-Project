@@ -64,13 +64,13 @@ int main(int argc, char **argv)
             if(!moveResult)
             {
                 std::cout << "[ERROR] Incorrect move for player " << std::to_string(activePlayer) 
-                            << " given: " << std::to_string(move) << std::endl;
+                            << " given: " << Game::GameBoard::getMoveString(move) << std::endl;
                 return 1;
             }
 
             // Print move and new board state
             std::cout   << "Player " << std::to_string(activePlayer + 1)
-                        << " Makes Move: " << std::to_string(move) << std::endl 
+                        << " Makes Move: " << Game::GameBoard::getMoveString(move) << std::endl 
                         << "New board state:" << std::endl 
                         << gameBoard.getBoardStateString() << std::endl << std::endl;
 
@@ -84,7 +84,6 @@ int main(int argc, char **argv)
 
             // Check if in end state
             gameResult = gameBoard.getBoardResult(activePlayer);
-            
         }
 
         // Output game win

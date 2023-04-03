@@ -76,7 +76,7 @@ clean:
 # Launches run script
 run: build/bin/simulation
 	@rm -f *.nsys-rep *.i* *.o* core.*
-	@echo -ne "gpu\n4\n\n1gb\n1\nampere\ngame_simulation\n" | \
+	@echo -ne "gpu\n4\n\n2gb\n1\nampere\ngame_simulation\n" | \
 		run_gpu .runSimulation.sh > /dev/null
 	@sleep 5
 	@tail -f *.o*

@@ -14,7 +14,7 @@ echo -ne "==================\n\n"
 
 # ncu -k game_simulation -o profile build/bin/simulation
 
-build/bin/simulation 2 2
+build/bin/simulation 2 3 1
 
 echo -ne "\n==================\n"
 echo -ne "Finished execution\n"

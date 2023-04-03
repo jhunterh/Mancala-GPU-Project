@@ -8,8 +8,10 @@
 // CUDA flags
 #ifdef __CUDACC__
 #define CUDA_CALLABLE_MEMBER __host__ __device__
+#define CUDA_VARIABLE __device__
 #else
 #define CUDA_CALLABLE_MEMBER
+#define CUDA_VARIABLE
 #endif 
 
 namespace Game {
@@ -41,6 +43,9 @@ public:
 
     // Return the state of the board in string format
     std::string getBoardStateString();
+
+    // Returns the move in string form
+    static std::string getMoveString(move_t);
 
 private:
 
