@@ -9,9 +9,12 @@
 #include "MonteCarloPlayer.h"
 #include "MonteCarloPlayerMT.h"
 #include "MonteCarloHybridPlayer.h"
+#include "NaivePureMonteCarloPlayer.h"
+#include "PureMonteCarloPlayer.h"
 #include "MonteCarloTypes.h"
 #include "GameBoard.h"
 #include "Logger.h"
+#include "MonteCarloUtility.h"
 
 std::shared_ptr<MonteCarlo::TreeNode> generateSelectionTree()
 {
@@ -339,11 +342,63 @@ void backpropagationTest()
     logger.log(Logging::TEST_LOG, out.str());
 }
 
+void pureMonteCarloTest()
+{
+    Logging::Logger& logger = Logging::Logger::getInstance();
+
+    Player::NaivePureMonteCarloPlayer reference;
+    Player::PureMonteCarloPlayer uut;
+
+    reference.setDeterministic(true, 0);
+    uut.setDeterministic(true, 0);
+
+    std::shared_ptr<MonteCarlo::TreeNode> referenceNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    std::shared_ptr<MonteCarlo::TreeNode> childNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    Game::GameBoard gameBoard;
+    gameBoard.scramble();
+    childNode->boardState = gameBoard;
+    childNode->playerNum = Player::PLAYER_NUMBER_2;
+    referenceNode->playerNum = Player::PLAYER_NUMBER_1;
+
+    referenceNode->childNodes.push_back(childNode);
+
+    std::shared_ptr<MonteCarlo::TreeNode> uutNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
+    uutNode->playerNum = Player::PLAYER_NUMBER_1;
+
+    uutNode->childNodes.push_back(childNode);
+
+    reference.setRootNode(referenceNode);
+    uut.setRootNode(uutNode);
+
+    unsigned int simulationResults_ref = 0;
+    unsigned int simulationNumMoves_ref = 0;
+    unsigned int moveNum = 0;
+
+    std::vector<unsigned int> simulationResults_uut(1,0);
+    std::vector<unsigned int> simulationNumMoves_uut(1,0);
+
+    reference.runSimulation(simulationResults_ref, simulationNumMoves_ref, moveNum);
+    uut.simulateMove(moveNum, simulationResults_uut, simulationNumMoves_uut);
+
+    bool pass = false;
+    if(simulationResults_ref*PLAYCOUNT_THRESHOLD_GPU == simulationResults_uut[0])
+    {
+        pass = true;
+    }
+
+    std::stringstream out("");
+    std::string statusString = (pass ? " PASSED" : " FAILED");
+    out << __PRETTY_FUNCTION__ << statusString << std::endl;
+
+    logger.log(Logging::TEST_LOG, out.str());
+}
+
 int main()
 {
     selectionTest();
     expansionTest();
     simulationTest();
     backpropagationTest();
+    pureMonteCarloTest();
     return 0;
 }
