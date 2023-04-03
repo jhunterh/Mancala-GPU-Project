@@ -36,4 +36,10 @@ std::string GameBoard::getBoardStateString()
     return "";
 }
 
+std::string GameBoard::getMoveString(move_t move)
+{
+    // Implement code here
+    return "";
+}
+
 }

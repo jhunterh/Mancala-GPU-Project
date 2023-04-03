@@ -224,6 +224,11 @@ std::string GameBoard::getBoardStateString()
     return boardStateBuf.str();
 }
 
+std::string GameBoard::getMoveString(move_t move)
+{
+    return std::to_string(move);
+}
+
 // Set the board to a random state
 void GameBoard::scramble()
 {
