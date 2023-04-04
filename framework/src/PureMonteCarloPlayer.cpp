@@ -11,7 +11,6 @@ namespace Player {
 PureMonteCarloPlayer::PureMonteCarloPlayer()
 {
     setDeterministic(false, 0);
-    curandInit();
 }
 
 // Select a move from the given boardstate

@@ -176,7 +176,7 @@ std::string MonteCarloPlayer::getPerformanceDataString() {
         executionTimeAggregate += (report.executionTime / 1000);
         numMovesSimulatedAggregate += report.numMovesSimulated;
     }
-    double averageExecutionTime = executionTimeAggregate / numSimulations;
+    double averageExecutionTime = (executionTimeAggregate / numSimulations)*m_numIterations;
     double movesPerSecond = numMovesSimulatedAggregate / executionTimeAggregate;
 
     double timeAggregate = 0;

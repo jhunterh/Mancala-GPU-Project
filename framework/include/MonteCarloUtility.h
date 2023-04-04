@@ -4,8 +4,8 @@
 #include "GameTypes.h"
 #include "GameBoard.h"
 
-#define BLOCK_SIZE 200 // max thread count per block
-#define GRID_SIZE 1 // 2 blocks of 1024 threads
+#define BLOCK_SIZE 1024 // max thread count per block
+#define GRID_SIZE 2 // 2 blocks of 1024 threads
 
 // Note: For future use
 // Launch configurator says 576 block size and 216 grid size for max launch
@@ -29,8 +29,6 @@ struct deterministic_data
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void curandInit();
 
 void simulationGPU(
     gpu_result* gpu_result_out,

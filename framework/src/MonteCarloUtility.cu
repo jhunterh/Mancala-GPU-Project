@@ -10,37 +10,29 @@
 __device__ __constant__ Player::playernum_t initPlayerTurn;
 __device__ __constant__ Game::GameBoard initalGameBoard;
 __device__ gpu_result gpuResultGlobal;
-__device__ curandState_t curandStatesGlobal[BLOCK_SIZE*GRID_SIZE];
 __device__ deterministic_data deterministicData;
 
-// Kernel to init curand
-__global__ void curandInitKernel(unsigned long long seed)
-{
-    unsigned int idx = blockDim.x*blockIdx.x + threadIdx.x;
-    seed += idx;
-    // Init curand states
-    curand_init(seed, 0, 0, &curandStatesGlobal[idx]);
-}
-
-__global__ void simulationKernel()
+__global__ void simulationKernel(unsigned long long seed)
 {
     // Initialize result memory (to be copied out later)
     // First two are players, third is total play count
     __shared__ gpu_result gpuResultLocal;
 
+    curandState_t curandState;
+    unsigned int idx = blockDim.x*blockIdx.x + threadIdx.x;
+    seed += idx;
+    // Init curand state
+    curand_init(seed, 0, 0, &curandState);
+
+
     // number of moves simulated by this thread
     unsigned int numMovesSimulated = 0;
-
-    unsigned int idx = blockDim.x*blockIdx.x + threadIdx.x;
 
     // Init result to 0
     if(threadIdx.x == 0)
         gpuResultLocal = {};
 
     __syncthreads();
-
-    // Grab curand state 
-    curandState_t curandStateLocal = curandStatesGlobal[idx];
 
     // Init search states
     Player::playernum_t currentPlayerTurn = initPlayerTurn;
@@ -67,7 +59,7 @@ __global__ void simulationKernel()
             }
             else
             {
-                selectedMove = moveList[curand(&curandStateLocal) % moveCount];
+                selectedMove = moveList[curand(&curandState) % moveCount];
             }
                 
             // Execute random move
@@ -100,9 +92,6 @@ __global__ void simulationKernel()
     // Count playout
     atomicAdd(&gpuResultLocal.playCount, 1);
 
-    // Save rng state
-    curandStatesGlobal[idx] = curandStateLocal;
-
     atomicAdd(&gpuResultLocal.numMovesSimulated, numMovesSimulated);
     __syncthreads();
 
@@ -117,13 +106,6 @@ __global__ void simulationKernel()
     __syncthreads();
 }
 
-void curandInit()
-{
-    // Init curand
-    curandInitKernel<<<GRID_SIZE, BLOCK_SIZE>>>(time(NULL));
-    checkCudaErrors(cudaGetLastError());
-}
-
 void simulationGPU(gpu_result* gpu_result_out, Game::GameBoard gameBoard, Player::playernum_t playerTurn, deterministic_data deterministicDataHost)
 {
     // Copy information to constant memory
@@ -134,7 +116,7 @@ void simulationGPU(gpu_result* gpu_result_out, Game::GameBoard gameBoard, Player
     checkCudaErrors(cudaMemcpyToSymbol(gpuResultGlobal, &gpuResult, sizeof(gpu_result)));
 
     // Launch kernel
-    simulationKernel<<<GRID_SIZE, BLOCK_SIZE>>>();
+    simulationKernel<<<GRID_SIZE, BLOCK_SIZE>>>(time(NULL));
     checkCudaErrors(cudaGetLastError());
 
     // Copy result back
