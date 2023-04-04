@@ -316,7 +316,8 @@ std::string GameBoard::getMoveString(move_t move)
 // Set the board to a random state
 void GameBoard::scramble()
 {
-    //TODO: set game board to a random state
+    //TODO: set to random state
+    initBoard();  // placeholder
 }
 
 }
