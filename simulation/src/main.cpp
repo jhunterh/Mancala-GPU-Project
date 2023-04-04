@@ -75,7 +75,7 @@ int main(int argc, char **argv)
             {
                 out.str(std::string(""));
                 out << "[ERROR] Incorrect move for player " << std::to_string(activePlayer) 
-                            << " given: " << std::to_string(move) << std::endl;
+                            << " given: " << Game::GameBoard::getMoveString(move) << std::endl;
                 logger.log(Logging::SIMULATION_LOG, out.str());
                 return 1;
             }
@@ -83,10 +83,11 @@ int main(int argc, char **argv)
             // Print move and new board state
             out.str(std::string(""));
             out   << "Player " << std::to_string(activePlayer + 1)
-                        << " Makes Move: " << std::to_string(move) << std::endl 
+                        << " Makes Move: " << Game::GameBoard::getMoveString(move) << std::endl
                         << "New board state:" << std::endl 
                         << gameBoard.getBoardStateString() << std::endl << std::endl;
             logger.log(Logging::SIMULATION_LOG, out.str());
+            
 
             // Check move result
             if(moveResult == Game::MOVE_SUCCESS)
@@ -98,7 +99,6 @@ int main(int argc, char **argv)
 
             // Check if in end state
             gameResult = gameBoard.getBoardResult(activePlayer);
-            
         }
 
         // Output game win

@@ -62,7 +62,8 @@ Game::move_t PlayerManager::getMove(playernum_t playerNum, Game::GameBoard& boar
     // Check that player number is not out of range
     if(playerNum > PLAYER_NUMBER_2)
     {
-        return Game::MOVE_INVALID;
+        Game::move_t invalidMove;
+        return invalidMove;
     }
 
     // Return player move
