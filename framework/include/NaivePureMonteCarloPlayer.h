@@ -41,10 +41,11 @@ public:
     void runSimulation(unsigned int& simulationResults, unsigned int& simulationNumMoves, int moveNum);
 
 private:
-    int m_numSimulations = 1000;
+    int m_numSimulations = 500;
     std::shared_ptr<RandomPlayer> m_randomPlayer;
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::vector<MonteCarlo::SimulationPerformanceReport> m_simulationReports;
+    std::vector<double> m_executionTimes;
 };
 
 }
