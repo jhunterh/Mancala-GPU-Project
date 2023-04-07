@@ -307,10 +307,14 @@ void backpropagationTest()
     uutMT.backpropagation();
     uutGPU.backpropagation();
 
-    double relErrMT = (referenceNode->value - uutMTNode->value)*(referenceNode->value - uutMTNode->value) 
-                        + (referenceNode2->value - uutMTNode2->value)*(referenceNode2->value - uutMTNode2->value);
-    double relErrGPU = (referenceNode->value - uutGPUNode->value)*(referenceNode->value - uutGPUNode->value) 
-                        + (referenceNode2->value - uutGPUNode2->value)*(referenceNode2->value - uutGPUNode2->value);
+    double referenceNormSquared = referenceNode->value * referenceNode->value;
+    double diffMTNormSquared = (referenceNode->value - uutMTNode->value)*(referenceNode->value - uutMTNode->value) 
+                                + (referenceNode2->value - uutMTNode2->value)*(referenceNode2->value - uutMTNode2->value);
+    double diffGPUNormSquared = (referenceNode->value - uutGPUNode->value)*(referenceNode->value - uutGPUNode->value) 
+                                + (referenceNode2->value - uutGPUNode2->value)*(referenceNode2->value - uutGPUNode2->value);
+
+    double relErrMT = sqrt(diffMTNormSquared / referenceNormSquared);
+    double relErrGPU = sqrt(diffGPUNormSquared / referenceNormSquared);
 
     std::stringstream out("");
 
@@ -377,7 +381,7 @@ void pureMonteCarloTest()
     uut.simulateMove(moveNum, simulationResults_uut, simulationNumMoves_uut);
 
     bool pass = false;
-    if(simulationResults_ref*PLAYCOUNT_THRESHOLD_GPU == simulationResults_uut[0])
+    if(simulationResults_ref*LAUNCH_SIZE == simulationResults_uut[0])
     {
         pass = true;
     }

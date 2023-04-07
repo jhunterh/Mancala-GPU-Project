@@ -15,6 +15,8 @@ MonteCarloPlayer::MonteCarloPlayer()
 // Select a move from the given boardstate
 Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t playerNum)
 {
+    Timer timer;
+    timer.start();
     m_rootNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
     m_rootNode->boardState = board;
     m_rootNode->playerNum = playerNum;
@@ -27,6 +29,9 @@ Game::move_t MonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t pl
     board.getMoves(moveList, playerNum);
 
     int maxNode = MonteCarlo::getMaxNode(m_rootNode->childNodes);
+
+    timer.stop();
+    m_executionTimes.push_back(timer.elapsedTime_ms());
 
     return moveList[maxNode];
 }
@@ -168,12 +173,21 @@ std::string MonteCarloPlayer::getPerformanceDataString() {
     unsigned int numMovesSimulatedAggregate = 0;
     for(auto report : m_simulationReports) {
         ++numSimulations;
-        executionTimeAggregate += report.executionTime;
+        executionTimeAggregate += (report.executionTime / 1000);
         numMovesSimulatedAggregate += report.numMovesSimulated;
     }
-    double averageExecutionTime = executionTimeAggregate / numSimulations;
-    double movesPerSecond = numMovesSimulatedAggregate / (executionTimeAggregate / 1000);
+    double averageExecutionTime = (executionTimeAggregate / numSimulations)*m_numIterations;
+    double movesPerSecond = numMovesSimulatedAggregate / executionTimeAggregate;
 
+    double timeAggregate = 0;
+    for(auto time : m_executionTimes)
+    {
+        timeAggregate += (time / 1000);
+    }
+    double avgTurnExecutionTime = timeAggregate / m_executionTimes.size();
+    
+
+    out << "\tAverage Execution Time Per Turn - " << avgTurnExecutionTime << std::endl;
     out << "\tAverage Execution Time (For Simulation Step) - " << averageExecutionTime << std::endl;
     out << "\tMoves Simulated Per Second - " << movesPerSecond << std::endl;
 
