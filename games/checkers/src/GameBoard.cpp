@@ -313,4 +313,9 @@ std::string GameBoard::getMoveString(move_t move)
                         ", Jump: " + std::to_string(move.jumpPos));
 }
 
+void GameBoard::scramble()
+{
+    initBoard();
+}
+
 }
