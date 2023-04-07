@@ -313,9 +313,11 @@ std::string GameBoard::getMoveString(move_t move)
                         ", Jump: " + std::to_string(move.jumpPos));
 }
 
+// Set the board to a random state
 void GameBoard::scramble()
 {
-    initBoard();
+    //TODO: set to random state
+    initBoard();  // placeholder
 }
 
 }

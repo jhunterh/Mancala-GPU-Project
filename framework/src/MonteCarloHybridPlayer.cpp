@@ -12,7 +12,6 @@ MonteCarloHybridPlayer::MonteCarloHybridPlayer()
     m_numIterations = 250;
 
     // Init curand values
-    curandInit();
     m_explorationParam = 0;
     setDeterministic(false, 0);
 }

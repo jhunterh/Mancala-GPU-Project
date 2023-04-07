@@ -87,7 +87,7 @@ static int getMaxNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
         if(nodeList[i]->numTimesVisited == 0) {
             continue;
         }
-        else if(nodeList[i]->value > nodeList[maxNode]->value) {
+        else if(nodeList[i]->numWins > nodeList[maxNode]->numWins) {
             maxNode = i;
         }
     }
@@ -99,7 +99,7 @@ static int getMaxNode(std::vector<std::shared_ptr<TreeNode>> nodeList) {
 // UCT is Upper Confidence Bound for Trees
 static void calculateValue(std::shared_ptr<TreeNode> node, unsigned int rootVisits, double explorationParam) {
     double avg = node->numWins / node->numTimesVisited;
-    node->value = avg + explorationParam*sqrt(log(rootVisits) / node->numTimesVisited);
+    node->value = avg + (explorationParam*sqrt(log(rootVisits) / node->numTimesVisited));
 }
 
 // Report given at the end of each simulation cycle
