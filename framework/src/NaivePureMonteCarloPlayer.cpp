@@ -16,6 +16,9 @@ NaivePureMonteCarloPlayer::NaivePureMonteCarloPlayer()
 // Select a move from the given boardstate
 Game::move_t NaivePureMonteCarloPlayer::selectMove(Game::GameBoard& board, playernum_t playerNum)
 {
+    Timer turnTimer;
+    turnTimer.start();
+
     m_rootNode = std::shared_ptr<MonteCarlo::TreeNode>(new MonteCarlo::TreeNode());
     m_rootNode->boardState = board;
     m_rootNode->playerNum = playerNum;
@@ -80,35 +83,41 @@ Game::move_t NaivePureMonteCarloPlayer::selectMove(Game::GameBoard& board, playe
         }
     }
 
+    turnTimer.stop();
+    m_executionTimes.push_back(turnTimer.elapsedTime_ms());
+
     return moveList[max];
 }
 
 void NaivePureMonteCarloPlayer::runSimulation(unsigned int& simulationResults, unsigned int& simulationNumMoves, int moveNum) {
-    Game::GameBoard boardState = m_rootNode->childNodes[moveNum]->boardState;
-    playernum_t playerTurn = m_rootNode->childNodes[moveNum]->playerNum;
-    Game::boardresult_t result = boardState.getBoardResult(playerTurn);
+    for(int i = 0; i < m_numSimulations; ++i)
+    {
+        Game::GameBoard boardState = m_rootNode->childNodes[moveNum]->boardState;
+        playernum_t playerTurn = m_rootNode->childNodes[moveNum]->playerNum;
+        Game::boardresult_t result = boardState.getBoardResult(playerTurn);
 
-    while(result == Game::GAME_ACTIVE) {
+        while(result == Game::GAME_ACTIVE) {
 
-        Game::move_t selectedMove = m_randomPlayer->selectMove(boardState, playerTurn);
-        Game::moveresult_t moveResult = boardState.executeMove(selectedMove, playerTurn);
-        ++simulationNumMoves;
+            Game::move_t selectedMove = m_randomPlayer->selectMove(boardState, playerTurn);
+            Game::moveresult_t moveResult = boardState.executeMove(selectedMove, playerTurn);
+            ++simulationNumMoves;
 
-        if (moveResult == Game::MOVE_SUCCESS) {
-            if (playerTurn == PLAYER_NUMBER_2) {
-                playerTurn = PLAYER_NUMBER_1;
-            } else {
-                playerTurn = PLAYER_NUMBER_2;
+            if (moveResult == Game::MOVE_SUCCESS) {
+                if (playerTurn == PLAYER_NUMBER_2) {
+                    playerTurn = PLAYER_NUMBER_1;
+                } else {
+                    playerTurn = PLAYER_NUMBER_2;
+                }
+            } else if (moveResult == Game::MOVE_INVALID) {
+                m_logger.log(Logging::SIMULATION_LOG,"Invalid Move!");
             }
-        } else if (moveResult == Game::MOVE_INVALID) {
-            m_logger.log(Logging::SIMULATION_LOG,"Invalid Move!");
+            
+            result = boardState.getBoardResult(playerTurn);
         }
         
-        result = boardState.getBoardResult(playerTurn);
-    }
-    
-    if(GameUtils::getPlayerFromBoardResult(result) == m_rootNode->playerNum) {
-        ++simulationResults;
+        if(GameUtils::getPlayerFromBoardResult(result) == m_rootNode->playerNum) {
+            ++simulationResults;
+        }
     }
 }
 
@@ -121,12 +130,20 @@ std::string NaivePureMonteCarloPlayer::getPerformanceDataString() {
     unsigned int numMovesSimulatedAggregate = 0;
     for(auto report : m_simulationReports) {
         ++numSimulations;
-        executionTimeAggregate += report.executionTime;
+        executionTimeAggregate += (report.executionTime / 1000);
         numMovesSimulatedAggregate += report.numMovesSimulated;
     }
     double averageExecutionTime = executionTimeAggregate / numSimulations;
-    double movesPerSecond = numMovesSimulatedAggregate / (executionTimeAggregate / 1000);
+    double movesPerSecond = numMovesSimulatedAggregate / executionTimeAggregate;
 
+    double turnTimesAggregate = 0;
+    for(auto turnTime : m_executionTimes)
+    {
+        turnTimesAggregate += (turnTime / 1000);
+    }
+    double avgTurnTime = turnTimesAggregate / m_executionTimes.size();
+
+    out << "\tAverage Turn Execution Time - " << avgTurnTime << std::endl;
     out << "\tAverage Execution Time (For Simulation Step) - " << averageExecutionTime << std::endl;
     out << "\tMoves Simulated Per Second - " << movesPerSecond << std::endl;
 

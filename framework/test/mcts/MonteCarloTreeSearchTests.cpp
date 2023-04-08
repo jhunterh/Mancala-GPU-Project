@@ -370,6 +370,8 @@ void pureMonteCarloTest()
     reference.setRootNode(referenceNode);
     uut.setRootNode(uutNode);
 
+    reference.setNumSimulations(1);
+
     unsigned int simulationResults_ref = 0;
     unsigned int simulationNumMoves_ref = 0;
     unsigned int moveNum = 0;
