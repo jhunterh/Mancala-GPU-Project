@@ -13,12 +13,12 @@ void GameBoard::initBoard()
 {
     BoardSquare rowStart = P1_PIECE;
     BoardSquare current;
-    for(int i = 0; i < 10; ++i)
+    for(int i = 0; i < 8; ++i)
     {
         current = rowStart;
-        for(int j = 0; j < 10; ++j)
+        for(int j = 0; j < 8; ++j)
         {
-            boardState[i*10+j] = current;
+            boardState[i*8+j] = current;
             current = (current == P1_PIECE) ? P2_PIECE : P1_PIECE;
         }
         rowStart = (rowStart == P1_PIECE) ? P2_PIECE : P1_PIECE;
@@ -32,44 +32,44 @@ CUDA_CALLABLE_MEMBER moveresult_t GameBoard::executeMove(move_t move, Player::pl
     BoardSquare pieceType = (playerNum == Player::PLAYER_NUMBER_1) ? P1_PIECE : P2_PIECE;
     BoardSquare opponentPiece = (playerNum == Player::PLAYER_NUMBER_1) ? P2_PIECE : P1_PIECE;
 
-    int moveDir = move & 0x700;
-    int row = (move & 0xff) / 10;
-    int col = (move & 0xff) % 10;
+    int moveDir = move & 0xC0;
+    int row = (move & 0x3f) / 8;
+    int col = (move & 0x3f) % 8;
 
     switch(moveDir)
     {
-        case 0x100: 
+        case 0x00: // 0
         {
-            if(boardState[row*10+col-1] == opponentPiece)
+            if(boardState[row*8+col-1] == opponentPiece)
             {
-                boardState[row*10+col-1] = pieceType;
+                boardState[row*8+col-1] = pieceType;
                 result = MOVE_SUCCESS;
             }
             break;
         }
-        case 0x200:
+        case 0x40: // 1
         {
-            if(boardState[(row-1)*10+col] == opponentPiece)
+            if(boardState[(row-1)*8+col] == opponentPiece)
             {
-                boardState[(row-1)*10+col] = pieceType;
+                boardState[(row-1)*8+col] = pieceType;
                 result = MOVE_SUCCESS;
             }
             break;
         }
-        case 0x300:
+        case 0x80: // 2
         {
-            if(boardState[row*10+col+1] == opponentPiece)
+            if(boardState[row*8+col+1] == opponentPiece)
             {
-                boardState[row*10+col+1] = pieceType;
+                boardState[row*8+col+1] = pieceType;
                 result = MOVE_SUCCESS;
             }
             break;
         }
-        case 0x400:
+        case 0xC0: // 3
         {
-            if(boardState[(row+1)*10+col] == opponentPiece)
+            if(boardState[(row+1)*8+col] == opponentPiece)
             {
-                boardState[(row+1)*10+col] = pieceType;
+                boardState[(row+1)*8+col] = pieceType;
                 result = MOVE_SUCCESS;
             }
             break;
@@ -78,7 +78,7 @@ CUDA_CALLABLE_MEMBER moveresult_t GameBoard::executeMove(move_t move, Player::pl
 
     if(result == MOVE_SUCCESS)
     {
-        boardState[row*10+col] = EMPTY;
+        boardState[row*8+col] = EMPTY;
     }
     
     return result;
@@ -91,33 +91,33 @@ CUDA_CALLABLE_MEMBER movecount_t GameBoard::getMoves(movelist_t& movesOut, Playe
     movecount_t moveCount = 0;
     BoardSquare pieceType = (playerNum == Player::PLAYER_NUMBER_1) ? P1_PIECE : P2_PIECE;
     BoardSquare opponentType = (playerNum == Player::PLAYER_NUMBER_1) ? P2_PIECE : P1_PIECE;
-    for(int i = 0; i < 10; ++i)
+    for(int i = 0; i < 8; ++i)
     {
-        for(int j = 0; j < 10; ++j)
+        for(int j = 0; j < 8; ++j)
         {
-            if(boardState[i*10+j] == pieceType)
+            if(boardState[i*8+j] == pieceType)
             {
-                if(j-1 >= 0 && boardState[(i*10+j-1)] == opponentType)
+                if(j-1 >= 0 && boardState[(i*8+j-1)] == opponentType)
                 {
-                    move_t moveNum = (i*10+j) | 0x100;
+                    move_t moveNum = (i*8+j);
                     movesOut[moveCount++] = moveNum;
                 }
                 
-                if(i-1 >= 0 && boardState[(i-1)*10+j] == opponentType)
+                if(i-1 >= 0 && boardState[(i-1)*8+j] == opponentType)
                 {
-                    move_t moveNum = (i*10+j) | 0x200;
+                    move_t moveNum = (i*8+j) | 0x40;
                     movesOut[moveCount++] = moveNum;
                 }
                 
-                if(j+1 < 10 && boardState[i*10+j+1] == opponentType)
+                if(j+1 < 8 && boardState[i*8+j+1] == opponentType)
                 {
-                    move_t moveNum = (i*10+j) | 0x300;
+                    move_t moveNum = (i*8+j) | 0x80;
                     movesOut[moveCount++] = moveNum;
                 }
                 
-                if(i+1 < 10 && boardState[(i+1)*10+j] == opponentType)
+                if(i+1 < 8 && boardState[(i+1)*8+j] == opponentType)
                 {
-                    move_t moveNum = (i*10+j) | 0x400;
+                    move_t moveNum = (i*8+j) | 0xC0;
                     movesOut[moveCount++] = moveNum;
                 }
             }
@@ -131,18 +131,43 @@ CUDA_CALLABLE_MEMBER movecount_t GameBoard::getMoves(movelist_t& movesOut, Playe
 // Current player number is needed for some games
 CUDA_CALLABLE_MEMBER boardresult_t GameBoard::getBoardResult(Player::playernum_t currentPlayerNum)
 {
-    // Set initial board state
-    boardresult_t boardResult = GAME_ACTIVE;
-    movelist_t moves;
-
-    movecount_t currentPlayerMoveCount = getMoves(moves, currentPlayerNum);
-    if(currentPlayerMoveCount == 0)
+    // Loop through each move
+    BoardSquare pieceType = (currentPlayerNum == Player::PLAYER_NUMBER_1) ? P1_PIECE : P2_PIECE;
+    BoardSquare opponentType = (currentPlayerNum == Player::PLAYER_NUMBER_1) ? P2_PIECE : P1_PIECE;
+    for(int i = 0; i < 8; ++i)
     {
-        boardResult = (currentPlayerNum == Player::PLAYER_NUMBER_1) ? GAME_OVER_PLAYER2_WIN : GAME_OVER_PLAYER1_WIN;
+        for(int j = 0; j < 8; ++j)
+        {
+            if(boardState[i*8+j] == pieceType)
+            {
+                // if any of these conditons are true, then the current player
+                // still has available moves and the game should continue
+                if(j-1 >= 0 && boardState[(i*8+j-1)] == opponentType)
+                {
+                    return GAME_ACTIVE;
+                }
+                
+                if(i-1 >= 0 && boardState[(i-1)*8+j] == opponentType)
+                {
+                    return GAME_ACTIVE;
+                }
+                
+                if(j+1 < 8 && boardState[i*8+j+1] == opponentType)
+                {
+                    return GAME_ACTIVE;
+                }
+                
+                if(i+1 < 8 && boardState[(i+1)*8+j] == opponentType)
+                {
+                    return GAME_ACTIVE;
+                }
+            }
+        }
     }
 
-    // Return board result
-    return boardResult;
+    // current player is out of moves
+    // return board result
+    return (currentPlayerNum == Player::PLAYER_NUMBER_1) ? GAME_OVER_PLAYER2_WIN : GAME_OVER_PLAYER1_WIN;
 }
 
 // Return the state of the board in string format
@@ -151,20 +176,20 @@ std::string GameBoard::getBoardStateString()
     // Create stringstream
     std::stringstream out("");
 
-    for(int i = 0; i < 10; ++i)
+    for(int i = 0; i < 8; ++i)
     {
-        for(int j = 0; j < 10; ++j)
+        for(int j = 0; j < 8; ++j)
         {
             std::string piece("");
-            if(boardState[i*10+j] == EMPTY)
+            if(boardState[i*8+j] == EMPTY)
             {
                 piece = " ";
             }
-            else if(boardState[i*10+j] == P1_PIECE)
+            else if(boardState[i*8+j] == P1_PIECE)
             {
                 piece = "1";
             }
-            else if(boardState[i*10+j] == P2_PIECE)
+            else if(boardState[i*8+j] == P2_PIECE)
             {
                 piece = "2";
             }
@@ -179,9 +204,9 @@ std::string GameBoard::getBoardStateString()
 
 std::string GameBoard::getMoveString(move_t move)
 {
-    int row = (move & 0xff) / 10;
-    int col = (move & 0xff) % 10;
-    int moveDir = move & 0x700;
+    int row = (move & 0x3f) / 8;
+    int col = (move & 0x3f) % 8;
+    int moveDir = move & 0xC0;
     
     std::stringstream out("");
     out << "HERE1: " << move << std::endl;
@@ -189,41 +214,41 @@ std::string GameBoard::getMoveString(move_t move)
 
     switch(moveDir)
     {
-        case 0x100: 
+        case 0x00: 
         {
             out << " LEFT";
             break;
         }
-        case 0x200:
+        case 0x40:
         {
             out << " UP";
             break;
         }
-        case 0x300:
+        case 0x80:
         {
             out << " RIGHT";
             break;
         }
-        case 0x400:
+        case 0xC0:
         {
             out << " DOWN";
             break;
         }
     }
 
-    return out.str();;
+    return out.str();
 }
 
 // Set the board to a random state
 void GameBoard::scramble()
 {
     srand(time(NULL));
-    for(int i = 0; i < 10; ++i)
+    for(int i = 0; i < 8; ++i)
     {
-        for(int j = 0; j < 10; ++j)
+        for(int j = 0; j < 8; ++j)
         {
             int num = rand() % 3;  // random number between 0 and 3
-            boardState[i*10+j] = num;
+            boardState[i*8+j] = num;
         }
     }
 }
