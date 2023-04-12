@@ -209,7 +209,6 @@ std::string GameBoard::getMoveString(move_t move)
     int moveDir = move & 0xC0;
     
     std::stringstream out("");
-    out << "HERE1: " << move << std::endl;
     out << "Row: " << row << " Col: " << col;
 
     switch(moveDir)
