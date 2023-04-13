@@ -19,9 +19,6 @@ MonteCarloPlayerMT::MonteCarloPlayerMT() {
     unsigned int numThreads = std::thread::hardware_concurrency();
     numThreads = (numThreads > MAX_NUM_THREADS) ? MAX_NUM_THREADS : numThreads; 
     if(numThreads > 0) {
-        std::stringstream out("");
-        out << getDescription() << ": Creating " << numThreads << " Simulation Threads" << std::endl;
-        m_logger.log(Logging::PERFORMANCE_LOG, out.str());
         for(unsigned int i = 0; i < numThreads; ++i) {
             m_threads.emplace_back(&MonteCarloPlayerMT::simulationThread, this);
         }
