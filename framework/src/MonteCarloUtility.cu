@@ -6,6 +6,10 @@
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 #include <helper_cuda.h>
+#include <cstdio>
+
+static int blockSize = DEFAULT_BLOCK_SIZE;
+static int gridSize = DEFAULT_GRID_SIZE;
 
 __device__ __constant__ Player::playernum_t initPlayerTurn;
 __device__ __constant__ Game::GameBoard initalGameBoard;
@@ -106,6 +110,25 @@ __global__ void simulationKernel(unsigned long long seed)
     __syncthreads();
 }
 
+void initCuda()
+{
+    // Get block and grid size from launch configurator
+    checkCudaErrors (
+        cudaOccupancyMaxPotentialBlockSize(
+        &gridSize,
+        &blockSize, 
+        simulationKernel,
+        0,
+        0
+        )
+    );
+}
+
+int getCudaLaunchSize()
+{
+    return gridSize * blockSize;
+}
+
 void simulationGPU(gpu_result* gpu_result_out, Game::GameBoard gameBoard, Player::playernum_t playerTurn, deterministic_data deterministicDataHost)
 {
     // Copy information to constant memory
@@ -116,7 +139,7 @@ void simulationGPU(gpu_result* gpu_result_out, Game::GameBoard gameBoard, Player
     checkCudaErrors(cudaMemcpyToSymbol(gpuResultGlobal, &gpuResult, sizeof(gpu_result)));
 
     // Launch kernel
-    simulationKernel<<<GRID_SIZE, BLOCK_SIZE>>>(time(NULL));
+    simulationKernel<<<gridSize, blockSize>>>(time(NULL));
     checkCudaErrors(cudaGetLastError());
 
     // Copy result back
