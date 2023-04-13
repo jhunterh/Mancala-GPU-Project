@@ -383,7 +383,8 @@ void pureMonteCarloTest()
     uut.simulateMove(moveNum, simulationResults_uut, simulationNumMoves_uut);
 
     bool pass = false;
-    if(simulationResults_ref*LAUNCH_SIZE == simulationResults_uut[0])
+    int cudaLaunchSize = getCudaLaunchSize();
+    if(simulationResults_ref*cudaLaunchSize == simulationResults_uut[0])
     {
         pass = true;
     }

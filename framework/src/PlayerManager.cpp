@@ -22,6 +22,12 @@ const std::vector<std::shared_ptr<Player>> PlayerManager::playerTypeList = {
     std::shared_ptr<Player>(new NaivePureMonteCarloPlayer())
 };
 
+// Constructor for PlayerManager class
+PlayerManager::PlayerManager()
+{
+    initCuda();
+}
+
 // Returns list of player types
 std::string PlayerManager::getPlayerTypeList()
 {
