@@ -14,7 +14,7 @@ static int gridSize = DEFAULT_GRID_SIZE;
 __device__ __constant__ Player::playernum_t initPlayerTurn;
 __device__ __constant__ Game::GameBoard initalGameBoard;
 __device__ gpu_result gpuResultGlobal;
-__device__ deterministic_data deterministicData;
+__device__ __constant__ deterministic_data deterministicData;
 
 __global__ void simulationKernel(unsigned long long seed)
 {
@@ -27,7 +27,6 @@ __global__ void simulationKernel(unsigned long long seed)
     seed += idx;
     // Init curand state
     curand_init(seed, 0, 0, &curandState);
-
 
     // number of moves simulated by this thread
     unsigned int numMovesSimulated = 0;
@@ -42,6 +41,7 @@ __global__ void simulationKernel(unsigned long long seed)
     Player::playernum_t currentPlayerTurn = initPlayerTurn;
     Game::GameBoard currentBoardState = initalGameBoard;
     Game::boardresult_t currentBoardResult = currentBoardState.getBoardResult(currentPlayerTurn);
+    deterministic_data deterministicDataReg = deterministicData;
 
     // Pick random move and execute
     while(currentBoardResult == Game::GAME_ACTIVE) 
@@ -54,12 +54,12 @@ __global__ void simulationKernel(unsigned long long seed)
         if(moveCount > 0)
         {   
             // Select random move
-            // NOTE: No need to worry about warp divergence here since
+            // NOTE: No need to worry about control divergence here since
             //       all threads will take the same path
             Game::move_t selectedMove;
-            if(deterministicData.isPreDetermined)
+            if(deterministicDataReg.isPreDetermined)
             {
-                selectedMove = moveList[deterministicData.value];
+                selectedMove = moveList[deterministicDataReg.value];
             }
             else
             {
@@ -107,7 +107,6 @@ __global__ void simulationKernel(unsigned long long seed)
         atomicAdd(&gpuResultGlobal.playCount, gpuResultLocal.playCount);
         atomicAdd(&gpuResultGlobal.numMovesSimulated, gpuResultLocal.numMovesSimulated);
     }
-    __syncthreads();
 }
 
 void initCuda()
