@@ -13,7 +13,7 @@ namespace Player
 class PlayerManager
 {
 public:
-    PlayerManager() = default;
+    PlayerManager();
     ~PlayerManager() = default;
 
     // Returns list of player types

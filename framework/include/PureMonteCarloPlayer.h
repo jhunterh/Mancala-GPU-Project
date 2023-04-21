@@ -31,7 +31,7 @@ public:
 
     void setNumSimulations(int num)
     {
-        m_numSimulations = num;
+        (void) num;
     }
 
     void setRootNode(std::shared_ptr<MonteCarlo::TreeNode> node)
@@ -42,7 +42,6 @@ public:
     void simulateMove(int moveNum, std::vector<unsigned int>& simulationResults, std::vector<unsigned int>& simulationNumMoves);
 
 private:
-    int m_numSimulations = 1000;
     std::shared_ptr<MonteCarlo::TreeNode> m_rootNode = nullptr;
     std::vector<MonteCarlo::SimulationPerformanceReport> m_simulationReports;
     deterministic_data m_deterministicData;

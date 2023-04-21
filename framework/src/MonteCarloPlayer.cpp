@@ -185,7 +185,6 @@ std::string MonteCarloPlayer::getPerformanceDataString() {
         timeAggregate += (time / 1000);
     }
     double avgTurnExecutionTime = timeAggregate / m_executionTimes.size();
-    
 
     out << "\tAverage Execution Time Per Turn - " << avgTurnExecutionTime << std::endl;
     out << "\tAverage Execution Time (For Simulation Step) - " << averageExecutionTime << std::endl;
