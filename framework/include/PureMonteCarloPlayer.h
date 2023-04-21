@@ -31,7 +31,7 @@ public:
 
     void setNumSimulations(int num)
     {
-        m_numSimulations = num;
+        (void) num;
     }
 
     void setRootNode(std::shared_ptr<MonteCarlo::TreeNode> node)
