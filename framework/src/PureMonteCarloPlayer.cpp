@@ -128,8 +128,6 @@ std::string PureMonteCarloPlayer::getPerformanceDataString() {
     }
     double avgTurnTime = turnTimesAggregate / m_executionTimes.size();
 
-    unsigned int simulationsPerMove = numMovesSimulatedAggregate / numSimulations;
-    out << "\tNumber of simulations executed per move - " << simulationsPerMove << std::endl;
     out << "\tAverage Turn Execution Time - " << avgTurnTime << std::endl;
     out << "\tAverage Execution Time (For Simulation Step) - " << averageExecutionTime << std::endl;
     out << "\tMoves Simulated Per Second - " << movesPerSecond << std::endl;
